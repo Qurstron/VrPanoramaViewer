@@ -1,0 +1,4 @@
+repository "VrPanorama@unity_2XIkvUC9AFZsSw@cloud"
+  path "/"
+    br "/main"
+    co "/main"
