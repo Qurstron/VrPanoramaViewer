@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5a1f07dc5afe854f9f12a4194aca3fb, type: 3}
   m_Name: iPhone
   m_EditorClassIdentifier: 
-  features: []
+  features:
+  - {fileID: 5168853927981376656}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &-8895518590110429109
 MonoBehaviour:
@@ -150,6 +152,26 @@ MonoBehaviour:
   company: Unity
   priority: 0
   required: 0
+--- !u!114 &-7618983692716137135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b213d3e3c7f3109449eb46a4c8ee42f0, type: 3}
+  m_Name: XrPerformanceSettingsFeature Metro
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: XR Performance Settings
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.extension.performance_settings
+  openxrExtensionStrings: XR_EXT_performance_settings
+  company: Unity
+  priority: 0
+  required: 0
 --- !u!114 &-7608755179541951601
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,6 +293,7 @@ MonoBehaviour:
   - {fileID: -5611916350011621528}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &-6469577044192512035
 MonoBehaviour:
@@ -284,9 +307,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5a1f07dc5afe854f9f12a4194aca3fb, type: 3}
   m_Name: WebGL
   m_EditorClassIdentifier: 
-  features: []
+  features:
+  - {fileID: -6139660991928321044}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &-6368128839055358620
 MonoBehaviour:
@@ -305,6 +330,26 @@ MonoBehaviour:
   version: 0.0.1
   featureIdInternal: com.unity.openxr.feature.input.palmpose
   openxrExtensionStrings: XR_EXT_palm_pose
+  company: Unity
+  priority: 0
+  required: 0
+--- !u!114 &-6139660991928321044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b213d3e3c7f3109449eb46a4c8ee42f0, type: 3}
+  m_Name: XrPerformanceSettingsFeature WebGL
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: XR Performance Settings
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.extension.performance_settings
+  openxrExtensionStrings: XR_EXT_performance_settings
   company: Unity
   priority: 0
   required: 0
@@ -453,6 +498,26 @@ MonoBehaviour:
   priority: 0
   required: 0
   ignoreValidationErrors: 0
+--- !u!114 &-4922497010428793147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b213d3e3c7f3109449eb46a4c8ee42f0, type: 3}
+  m_Name: XrPerformanceSettingsFeature Android
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: XR Performance Settings
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.extension.performance_settings
+  openxrExtensionStrings: XR_EXT_performance_settings
+  company: Unity
+  priority: 0
+  required: 0
 --- !u!114 &-4731438336562001402
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -603,8 +668,10 @@ MonoBehaviour:
   - {fileID: -4731438336562001402}
   - {fileID: 4135229692886101830}
   - {fileID: 2220871646205782247}
+  - {fileID: 82137814784924121}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &-2513858183220632965
 MonoBehaviour:
@@ -806,8 +873,10 @@ MonoBehaviour:
   - {fileID: 4743943348186933471}
   - {fileID: -6368128839055358620}
   - {fileID: -7581625304019661375}
+  - {fileID: -4922497010428793147}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &-34596358968032513
 MonoBehaviour:
@@ -906,6 +975,26 @@ MonoBehaviour:
   featureIdInternal: 
   openxrExtensionStrings: 
   company: 
+  priority: 0
+  required: 0
+--- !u!114 &82137814784924121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b213d3e3c7f3109449eb46a4c8ee42f0, type: 3}
+  m_Name: XrPerformanceSettingsFeature Standalone
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: XR Performance Settings
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.extension.performance_settings
+  openxrExtensionStrings: XR_EXT_performance_settings
+  company: Unity
   priority: 0
   required: 0
 --- !u!114 &154189092879288027
@@ -1396,8 +1485,10 @@ MonoBehaviour:
   - {fileID: 2785801254050174073}
   - {fileID: -5191125240872322840}
   - {fileID: -5644509607064669464}
+  - {fileID: -7618983692716137135}
   m_renderMode: 1
   m_depthSubmissionMode: 0
+  m_optimizeBufferDiscards: 0
   m_symmetricProjection: 0
 --- !u!114 &4451366187881382638
 MonoBehaviour:
@@ -1558,6 +1649,26 @@ MonoBehaviour:
   version: 0.0.1
   featureIdInternal: com.unity.openxr.feature.input.handinteractionposes
   openxrExtensionStrings: XR_EXT_hand_interaction
+  company: Unity
+  priority: 0
+  required: 0
+--- !u!114 &5168853927981376656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b213d3e3c7f3109449eb46a4c8ee42f0, type: 3}
+  m_Name: XrPerformanceSettingsFeature iPhone
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: XR Performance Settings
+  version: 1.0.0
+  featureIdInternal: com.unity.openxr.feature.extension.performance_settings
+  openxrExtensionStrings: XR_EXT_performance_settings
   company: Unity
   priority: 0
   required: 0
@@ -1731,9 +1842,14 @@ MonoBehaviour:
   - visibleName: Quest Pro
     manifestName: cambria
     enabled: 1
+  - visibleName: Quest 3
+    manifestName: eureka
+    enabled: 1
   forceRemoveInternetPermission: 1
   symmetricProjection: 0
+  foveatedRenderingApi: 0
   systemSplashScreen: {fileID: 0}
+  optimizeBufferDiscards: 1
   lateLatchingMode: 0
   lateLatchingDebug: 0
 --- !u!114 &7558681416710770871
