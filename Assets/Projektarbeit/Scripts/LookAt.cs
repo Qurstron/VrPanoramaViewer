@@ -6,7 +6,10 @@ public class LookAt : MonoBehaviour
 {
     public Transform toLookAt;
 
-    // Update is called once per frame
+    private void Start()
+    {
+        if (toLookAt == null) toLookAt = Camera.main.transform;
+    }
     void Update()
     {
         transform.LookAt(toLookAt);

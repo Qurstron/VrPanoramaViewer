@@ -69,6 +69,16 @@ public class JSONClasses
         }
     }
 
+    [Serializable]
+    public class Node
+    {
+        public string name;
+        public string displayName;
+        public string description;
+        public string color;
+        public List<Node> neighbors;
+    }
+
     // panorama file (.zip)
     [Serializable]
     public class Config
