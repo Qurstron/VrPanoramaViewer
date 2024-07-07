@@ -70,17 +70,26 @@ public class PanoramaSphereController : MonoBehaviour
                 labelObject.transform.localPosition = convertArrayToPos(label.pos, radiusLabel);
                 labelObject.transform.localRotation = Quaternion.Euler(-label.pos[0], label.pos[1], 0);
 
-                var header = labelObject.GetNamedChild("Header");
-                var content = labelObject.GetNamedChild("Content");
-
-                if (label.header == null)
+                string labelText = "";
+                if (!string.IsNullOrEmpty(label.header))
                 {
-                    labelObject.GetNamedChild("Content").transform.position = header.transform.position;
-                    Destroy(header);
+                    labelText = $"<size=0.8><u>{label.header}</u></size>";
+                    if (!string.IsNullOrEmpty(label.header)) labelText += "\n";
                 }
-                else labelObject.GetNamedChild("Header").GetComponent<TMP_Text>().text = label.header;
-                if (label.content == null) Destroy(content);
-                content.GetComponent<TMP_Text>().text = label.content;
+                labelText += label.content;
+                labelObject.GetNamedChild("Text").GetComponent<TMP_Text>().text = labelText;
+
+                //var header = labelObject.GetNamedChild("Header");
+                //var content = labelObject.GetNamedChild("Content");
+
+                //if (label.header == null)
+                //{
+                //    labelObject.GetNamedChild("Content").transform.position = header.transform.position;
+                //    Destroy(header);
+                //}
+                //else labelObject.GetNamedChild("Header").GetComponent<TMP_Text>().text = label.header;
+                //if (label.content == null) Destroy(content);
+                //content.GetComponent<TMP_Text>().text = label.content;
             }
         }
 

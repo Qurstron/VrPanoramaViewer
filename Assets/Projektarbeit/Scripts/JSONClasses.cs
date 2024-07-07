@@ -76,14 +76,42 @@ public class JSONClasses
         public string displayName;
         public string description;
         public string color;
+
+        [NonSerialized]
+        public Color convertedColor;
+        [NonSerialized]
         public List<Node> neighbors;
+        [NonSerialized]
+        public GameObject gameObject;
+        [NonSerialized]
+        public NodeProperties properties;
+
+        public override bool Equals(object obj)
+        {
+            return obj is Node node &&
+                   name == node.name;
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(name);
+        }
+    }
+
+    [Serializable]
+    public class Edge
+    {
+        public string nodeA;
+        public string nodeB;
+        public float weight;
     }
 
     // panorama file (.zip)
     [Serializable]
     public class Config
     {
+        [NonSerialized]
         public string name; // not part of the config.json, needs to be set manualy
+
         public Pic[] pics;
         public string description;
         public long version;

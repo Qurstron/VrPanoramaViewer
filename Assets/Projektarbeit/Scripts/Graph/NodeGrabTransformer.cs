@@ -1,17 +1,24 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
+[RequireComponent(typeof(NodeProperties))]
 public class NodeGrabTransformer : XRBaseGrabTransformer
 {
     public float easingDuration = 1.0f;
     public float massInfuence = 0.0f;
-    private Vector3 originalPos = Vector3.zero;
+    public OnAnimationFinish onAnimationFinish;
+    public OnHoverExit onHoverExitNoSelect;
+
+    private NodeProperties nodeProperties;
     private Sequence sequence = null;
+    private bool isHolding = false;
 
     public override void Process(XRGrabInteractable grabInteractable, XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale)
     {
@@ -41,6 +48,7 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
     private new void Start()
     {
         base.Start();
+        nodeProperties = GetComponent<NodeProperties>();
 
         float massDuration = 0.0f;
         if (TryGetComponent<Rigidbody>(out var rigidbody))
@@ -52,26 +60,30 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
         {
             grabInteractable.selectExited.AddListener((args) =>
             {
-                //if (sequence == null)
-                //{
-                //    sequence = DOTween.Sequence();
-                //    sequence.Complete();
-                //}
-                //if (!sequence.IsComplete())
                 sequence.Kill(true);
                 sequence = DOTween.Sequence();
-                sequence.Append(transform.DOMove(originalPos, easingDuration + massDuration).SetEase(Ease.OutElastic));
-                // fail safe
+                sequence.Append(transform.DOMove(nodeProperties.originalPos, easingDuration + massDuration).SetEase(Ease.OutElastic));
                 sequence.onComplete = () =>
                 {
-                    transform.position = originalPos;
+                    transform.position = nodeProperties.originalPos;
+                    onAnimationFinish.Invoke();
                 };
+
+                isHolding = false;
+                onHoverExitNoSelect.Invoke();
             });
 
             grabInteractable.selectEntered.AddListener((args) =>
             {
                 sequence.Kill(true);
-                originalPos = transform.position;
+                nodeProperties.originalPos = transform.position;
+                isHolding = true;
+            });
+
+            grabInteractable.hoverExited.AddListener((args) =>
+            {
+                if (isHolding) return;
+                onHoverExitNoSelect.Invoke();
             });
         }
         else
@@ -80,3 +92,8 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
         }
     }
 }
+
+[Serializable]
+public class OnAnimationFinish : UnityEvent { }
+[Serializable]
+public class OnHoverExit : UnityEvent { }

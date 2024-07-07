@@ -13,5 +13,6 @@ public class LookAt : MonoBehaviour
     void Update()
     {
         transform.LookAt(toLookAt);
+        //transform.rotation = Quaternion.LookRotation(-toLookAt.forward);
     }
 }

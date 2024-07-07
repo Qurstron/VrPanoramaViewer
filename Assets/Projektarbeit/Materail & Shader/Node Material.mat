@@ -57,10 +57,10 @@ Material:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
     - _EdgeHighlightColor: {r: 0, g: 0, b: 0, a: 0}
     - _GridColor: {r: 0.1843137, g: 0.8117647, b: 0.43432853, a: 0}
-    - _HigherOffset: {r: 0.13683473, g: 0.13683473, b: 0, a: 0}
+    - _HigherOffset: {r: 4.386693, g: 4.386693, b: 0, a: 0}
     - _HigherSizeFactor: {r: 3, g: 3, b: 0, a: 0}
     - _MinMaxNoise: {r: 0.5, g: 1, b: 0, a: 0}
-    - _Offset: {r: 0.13683473, g: 0.13683473, b: 0, a: 0}
+    - _Offset: {r: 4.386693, g: 4.386693, b: 0, a: 0}
     - _RimColor: {r: 5.992157, g: 1.7254901, b: 5.9259543, a: 0}
     - _Size: {r: 0.05, g: 0.05, b: 0, a: 0}
   m_BuildTextureStacks: []
