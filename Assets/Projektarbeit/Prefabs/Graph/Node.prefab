@@ -647,7 +647,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   text: Node Description
-  startDelay: 0.4
+  startDelay: 0
   typeDelay: 0.01
   isUntyping: 0
   onFinish:
@@ -1260,7 +1260,7 @@ GameObject:
   - component: {fileID: 3799391064595641790}
   - component: {fileID: 4188061409755161930}
   m_Layer: 0
-  m_Name: NodeCollapsed
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1308,7 +1308,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -1371,7 +1371,7 @@ MonoBehaviour:
     description: 
     color: 
   originalPos: {x: 0, y: 0, z: 0}
-  interactable: {fileID: 3799391064595641790}
+  interactable: {fileID: 0}
 --- !u!114 &3799391064595641790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1513,8 +1513,8 @@ MonoBehaviour:
   m_AngularVelocityScale: 1
   m_TrackPosition: 1
   m_SmoothPosition: 1
-  m_SmoothPositionAmount: 5
-  m_TightenPosition: 0.2
+  m_SmoothPositionAmount: 8
+  m_TightenPosition: 0.1
   m_TrackRotation: 0
   m_SmoothRotation: 0
   m_SmoothRotationAmount: 8
@@ -1543,7 +1543,7 @@ MonoBehaviour:
   m_ThrowVelocityScale: 1.5
   m_ThrowAngularVelocityScale: 1
   m_ForceGravityOnDetach: 0
-  m_RetainTransformParent: 1
+  m_RetainTransformParent: 0
   m_AttachPointCompatibilityMode: 0
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []

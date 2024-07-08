@@ -19,6 +19,7 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
     private NodeProperties nodeProperties;
     private Sequence sequence = null;
     private bool isHolding = false;
+    private bool isAnimating = false;
 
     public override void Process(XRGrabInteractable grabInteractable, XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale)
     {
@@ -49,6 +50,7 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
     {
         base.Start();
         nodeProperties = GetComponent<NodeProperties>();
+        Transform originalParent = transform.parent;
 
         float massDuration = 0.0f;
         if (TryGetComponent<Rigidbody>(out var rigidbody))
@@ -60,23 +62,37 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
         {
             grabInteractable.selectExited.AddListener((args) =>
             {
-                sequence.Kill(true);
+                sequence.Kill(false);
+                //if (isActivated)
+                //{
+                //    isActivated = false;
+                //    return;
+                //}
+
+                isAnimating = true;
                 sequence = DOTween.Sequence();
-                sequence.Append(transform.DOMove(nodeProperties.originalPos, easingDuration + massDuration).SetEase(Ease.OutElastic));
+                sequence.Append(transform.DOLocalMove(nodeProperties.originalPos, easingDuration + massDuration).SetEase(Ease.OutElastic));
                 sequence.onComplete = () =>
                 {
-                    transform.position = nodeProperties.originalPos;
+                    //transform.position = nodeProperties.originalPos + originalParent.position;
                     onAnimationFinish.Invoke();
+                    nodeProperties.IsPositionLocked = false;
+                    isAnimating = false;
                 };
 
                 isHolding = false;
-                onHoverExitNoSelect.Invoke();
+                if (!grabInteractable.isHovered) onHoverExitNoSelect.Invoke();
             });
 
             grabInteractable.selectEntered.AddListener((args) =>
             {
-                sequence.Kill(true);
-                nodeProperties.originalPos = transform.position;
+                sequence.Kill(false);
+                if (!isAnimating)
+                {
+                    nodeProperties.originalPos = originalParent.InverseTransformPoint(transform.position);
+                }
+                isAnimating = false;
+                nodeProperties.IsPositionLocked = true;
                 isHolding = true;
             });
 
@@ -85,6 +101,11 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
                 if (isHolding) return;
                 onHoverExitNoSelect.Invoke();
             });
+
+            //grabInteractable.activated.AddListener((args) =>
+            //{
+            //    isActivated = true;
+            //});
         }
         else
         {

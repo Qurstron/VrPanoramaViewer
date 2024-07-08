@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
+using UnityEngine.XR.Interaction.Toolkit;
 using static JSONClasses;
 using static JSONClasses.CategoryObject;
 
@@ -19,12 +21,15 @@ public class CreateTestGraph : MonoBehaviour
     public float repelFactor = .01f;
     //public float springFactor = .01f;
     public float forceFactor = .01f;
+    public float selectDuration = 1f;
 
     private Queue<Node> openList = new();
     private HashSet<Node> closedList = new();
     private Transform nodeParent = null;
     private Transform lineParent = null;
     private NodeProperties[] nodeProperties = new NodeProperties[0];
+    private NodeProperties selectedNode = null;
+    private Sequence selectSequence = null;
 
     private void Start()
     {
@@ -77,14 +82,14 @@ public class CreateTestGraph : MonoBehaviour
             n3.convertedColor = color.gamma;
         }
 
-        root.neighbors.Add(n1);
-        root.neighbors.Add(n2);
-        n1.neighbors.Add(root);
-        n1.neighbors.Add(n3);
-        n2.neighbors.Add(root);
-        n2.neighbors.Add(n3);
-        n3.neighbors.Add(n1);
-        n3.neighbors.Add(n2);
+        root.neighbors.Add(new(n1, 1));
+        root.neighbors.Add(new(n2, 1));
+        n1.neighbors.Add(new(root, 1));
+        n1.neighbors.Add(new(n3, 2));
+        n2.neighbors.Add(new(root, 1));
+        n2.neighbors.Add(new(n3, 2));
+        n3.neighbors.Add(new(n1, 2));
+        n3.neighbors.Add(new(n2, 2));
 
         SpawnGraph(root);
     }
@@ -116,14 +121,14 @@ public class CreateTestGraph : MonoBehaviour
             node.node.neighbors?.ForEach(neighbor =>
             {
                 // TODO: use edge weigth instad of targetDistance
-                Vector3 dif = node.TheoreticalPosition - neighbor.properties.TheoreticalPosition;
-                node.Force -= dif * (dif.magnitude / targetDistance);
+                Vector3 dif = node.TheoreticalPosition - neighbor.node.properties.TheoreticalPosition;
+                node.Force -= dif * (dif.magnitude / (targetDistance * neighbor.metric));
             });
         }
 
         foreach (var node in nodeProperties)
         {
-            node.transform.position += node.Force * forceFactor;
+            node.transform.localPosition += node.Force * forceFactor;
             node.Force = Vector3.zero;
         }
     }
@@ -146,7 +151,7 @@ public class CreateTestGraph : MonoBehaviour
         NodeProperties properties = Instantiate(nodeExpanededPrefab, nodeParent).GetComponent<NodeProperties>();
         int depth = 1;
 
-        root.neighbors.ForEach(n => openList.Enqueue(n));
+        root.neighbors.ForEach(n => openList.Enqueue(n.node));
         openList.Enqueue(null);
         closedList.Add(root);
 
@@ -154,6 +159,8 @@ public class CreateTestGraph : MonoBehaviour
         SetNodeProperties(root, properties);
         root.gameObject = properties.gameObject;
         nodeProperties.Add(properties);
+        selectedNode = properties;
+        properties.interactable.activated.AddListener(SetSelectedNode);
 
         while (openList.Count > 0)
         {
@@ -167,7 +174,7 @@ public class CreateTestGraph : MonoBehaviour
             }
             if (closedList.Contains(node)) continue;
             closedList.Add(node);
-            node.neighbors?.ForEach(n => openList.Enqueue(n));
+            node.neighbors?.ForEach(n => openList.Enqueue(n.node));
 
             // spawn node
             properties = Instantiate(nodeCollabsedPrefab, nodeParent).GetComponent<NodeProperties>();
@@ -176,11 +183,12 @@ public class CreateTestGraph : MonoBehaviour
             SetNodeProperties(node, properties);
             node.gameObject = properties.gameObject;
             nodeProperties.Add(properties);
+            properties.interactable.activated.AddListener(SetSelectedNode);
 
             node.neighbors.ForEach(n =>
             {
-                if (!closedList.Contains(n)) return;
-                SpawnLine(node, n);
+                if (!closedList.Contains(n.node)) return;
+                SpawnLine(node, n.node);
             });
         }
 
@@ -211,6 +219,32 @@ public class CreateTestGraph : MonoBehaviour
         nodeProperties.node = node;
         nodeProperties.Color = node.convertedColor;
         nodeProperties.DisplayName = node.displayName;
+    }
+
+    private void SetSelectedNode(ActivateEventArgs args)
+    {
+        NodeProperties property = args.interactableObject.transform.GetComponent<NodeProperties>();
+        if (selectedNode == property) return;
+        return;
+
+        selectedNode.positionLockOverride = false;
+        property.positionLockOverride = true;
+        //property.transform.localPosition = Vector3.zero;
+        var interactor = property.transform.GetComponent<XRBaseInteractable>().interactorsSelecting[0] as XRBaseInteractor;
+        
+        //interactor.allowSelect = false;
+        //interactor.allowSelect = true;
+        //interactor.EndManualInteraction();
+
+        selectSequence.Kill(true);
+        selectSequence = DOTween.Sequence();
+        selectSequence.Append(property.transform.DOLocalMove(Vector3.zero, selectDuration).SetEase(Ease.OutExpo));
+        selectSequence.onComplete = () =>
+        {
+            property.transform.localPosition = Vector3.zero;
+        };
+
+        selectedNode = property;
     }
 }
 

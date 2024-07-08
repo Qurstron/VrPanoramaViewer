@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 using static JSONClasses;
 
+[RequireComponent(typeof(XRBaseInteractable))]
 public class NodeProperties : MonoBehaviour
 {
     //private MaterialPropertyBlock propertyBlock;
@@ -52,12 +55,13 @@ public class NodeProperties : MonoBehaviour
     //public Material material;
     public MeshRenderer meshRenderer;
     public string colorPropertyName;
+
     [Header("Strings")]
     public TMP_Text displayText;
+
     [Header("GameObject specific")]
     public bool positionLockOverride = false;
-    // indicates if the node positon is driven by animation
-    private bool isPositionLocked = false;
+    private bool isPositionLocked = false; // indicates if the node positon is driven by animation
     public bool IsPositionLocked
     {
         get { return isPositionLocked; }
@@ -82,13 +86,30 @@ public class NodeProperties : MonoBehaviour
         }
     }
     public Node node;
-    public Vector3 originalPos = Vector3.zero;
+    public Vector3 originalPos = Vector3.zero; // local space
     public Vector3 TheoreticalPosition
     {
         get
         {
-            if (IsPositionLocked) return originalPos;
-            return transform.position;
+            if (IsPositionLocked || positionLockOverride) return originalPos;
+            return transform.localPosition;
         }
+    }
+    public XRBaseInteractable interactable;
+
+    private void Start()
+    {
+        if (interactable == null) interactable = GetComponent<XRBaseInteractable>();
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NodeProperties properties &&
+               base.Equals(obj) &&
+               EqualityComparer<Node>.Default.Equals(node, properties.node);
+    }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), node);
     }
 }

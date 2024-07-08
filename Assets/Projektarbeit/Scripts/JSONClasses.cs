@@ -80,7 +80,7 @@ public class JSONClasses
         [NonSerialized]
         public Color convertedColor;
         [NonSerialized]
-        public List<Node> neighbors;
+        public List<NodeEdge> neighbors;
         [NonSerialized]
         public GameObject gameObject;
         [NonSerialized]
@@ -95,6 +95,18 @@ public class JSONClasses
         {
             return HashCode.Combine(name);
         }
+
+        public class NodeEdge
+        {
+            public Node node;
+            public float metric;
+
+            public NodeEdge(Node node, float metric)
+            {
+                this.node = node;
+                this.metric = metric;
+            }
+        }
     }
 
     [Serializable]
@@ -102,7 +114,7 @@ public class JSONClasses
     {
         public string nodeA;
         public string nodeB;
-        public float weight;
+        public float metric;
     }
 
     // panorama file (.zip)
