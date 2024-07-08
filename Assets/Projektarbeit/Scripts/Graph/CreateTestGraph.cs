@@ -225,23 +225,29 @@ public class CreateTestGraph : MonoBehaviour
     {
         NodeProperties property = args.interactableObject.transform.GetComponent<NodeProperties>();
         if (selectedNode == property) return;
-        return;
 
         selectedNode.positionLockOverride = false;
+        selectedNode.IsPositionLocked = false;
         property.positionLockOverride = true;
-        //property.transform.localPosition = Vector3.zero;
         var interactor = property.transform.GetComponent<XRBaseInteractable>().interactorsSelecting[0] as XRBaseInteractor;
-        
-        //interactor.allowSelect = false;
-        //interactor.allowSelect = true;
-        //interactor.EndManualInteraction();
 
-        selectSequence.Kill(true);
+        property.isForceDrop = true;
+        interactor.allowSelect = false;
+
+        //selectSequence.Kill(true);
         selectSequence = DOTween.Sequence();
-        selectSequence.Append(property.transform.DOLocalMove(Vector3.zero, selectDuration).SetEase(Ease.OutExpo));
+        selectSequence.Append(property.transform.DOMove(transform.position, selectDuration).SetEase(Ease.OutExpo));
+        selectSequence.onUpdate = () =>
+        {
+            property.originalPos = property.transform.position - transform.position;
+        };
         selectSequence.onComplete = () =>
         {
-            property.transform.localPosition = Vector3.zero;
+            //property.transform.localPosition = Vector3.zero;
+            //property.originalPos = property.transform.position - transform.position;
+            interactor.allowSelect = true;
+            interactor.allowHover = true;
+            property.isForceDrop = false;
         };
 
         selectedNode = property;

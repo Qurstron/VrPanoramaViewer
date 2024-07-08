@@ -43,7 +43,23 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
 
         // Calculate offset of the grab interactable's position relative to its attach transform
         var attachOffset = thisTransformPose.position - thisAttachTransform.position;
-        targetPose.position = attachOffset + interactorAttachPose.position;
+        if (grabInteractable.trackRotation)
+        {
+            // Transform that offset direction from world space to local space of the transform it's relative to.
+            // It will be applied to the interactor's attach position using the orientation of the Interactor's attach transform.
+            var positionOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
+            var rotationOffset = Quaternion.Inverse(Quaternion.Inverse(thisTransformPose.rotation) * thisAttachTransform.rotation);
+
+            //targetPose.position = (interactorAttachPose.rotation * positionOffset) + interactorAttachPose.position;
+            targetPose.position = attachOffset + interactorAttachPose.position;
+            targetPose.rotation = (interactorAttachPose.rotation * rotationOffset);
+        }
+        else
+        {
+            // When not using the rotation of the Interactor, the world offset direction can be directly
+            // added to the Interactor's attach transform position.
+            targetPose.position = attachOffset + interactorAttachPose.position;
+        }
     }
 
     private new void Start()
@@ -62,19 +78,19 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
         {
             grabInteractable.selectExited.AddListener((args) =>
             {
+                if (nodeProperties.isForceDrop)
+                {
+                    isHolding = false;
+                    onHoverExitNoSelect.Invoke();
+                    return;
+                }
                 sequence.Kill(false);
-                //if (isActivated)
-                //{
-                //    isActivated = false;
-                //    return;
-                //}
 
                 isAnimating = true;
                 sequence = DOTween.Sequence();
                 sequence.Append(transform.DOLocalMove(nodeProperties.originalPos, easingDuration + massDuration).SetEase(Ease.OutElastic));
                 sequence.onComplete = () =>
                 {
-                    //transform.position = nodeProperties.originalPos + originalParent.position;
                     onAnimationFinish.Invoke();
                     nodeProperties.IsPositionLocked = false;
                     isAnimating = false;
@@ -101,11 +117,6 @@ public class NodeGrabTransformer : XRBaseGrabTransformer
                 if (isHolding) return;
                 onHoverExitNoSelect.Invoke();
             });
-
-            //grabInteractable.activated.AddListener((args) =>
-            //{
-            //    isActivated = true;
-            //});
         }
         else
         {

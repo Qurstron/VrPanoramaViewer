@@ -60,6 +60,7 @@ public class NodeProperties : MonoBehaviour
     public TMP_Text displayText;
 
     [Header("GameObject specific")]
+    public bool isForceDrop = false;
     public bool positionLockOverride = false;
     private bool isPositionLocked = false; // indicates if the node positon is driven by animation
     public bool IsPositionLocked
