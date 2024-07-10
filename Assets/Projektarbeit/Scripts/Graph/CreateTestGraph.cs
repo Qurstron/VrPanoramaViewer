@@ -243,8 +243,6 @@ public class CreateTestGraph : MonoBehaviour
         };
         selectSequence.onComplete = () =>
         {
-            //property.transform.localPosition = Vector3.zero;
-            //property.originalPos = property.transform.position - transform.position;
             interactor.allowSelect = true;
             interactor.allowHover = true;
             property.isForceDrop = false;
