@@ -23,6 +23,7 @@ public class JSONClasses
         {
             public string header;
             public string content;
+            public string details;
             public float[] pos;
         }
         [Serializable]

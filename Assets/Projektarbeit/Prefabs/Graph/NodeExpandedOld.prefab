@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 5586970738112444198}
   - component: {fileID: 5965139585449486536}
   m_Layer: 0
-  m_Name: NodeExpanded
+  m_Name: NodeExpandedOld
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

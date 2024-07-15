@@ -172,6 +172,19 @@ public class DownloadTexture : MonoBehaviour
         
         Config config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(folderPath + "/config.json"));
         config.Construct(name);
+        foreach (var pic in config.pics)
+        {
+            foreach (var cat in pic.categories)
+            {
+                foreach (var label in cat.labels)
+                {
+                    if (string.IsNullOrEmpty(label.details))
+                    {
+                        label.details = label.content;
+                    }
+                }
+            }
+        }
 
         // Selected panorama is already loaded
         if (config.Equals(timelineController.Config)) return timelineController.Config;

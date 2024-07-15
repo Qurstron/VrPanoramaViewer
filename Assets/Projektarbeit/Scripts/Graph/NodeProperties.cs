@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,16 +12,49 @@ using static JSONClasses;
 [RequireComponent(typeof(XRBaseInteractable))]
 public class NodeProperties : MonoBehaviour
 {
-    //private MaterialPropertyBlock propertyBlock;
+    [Header("Color")]
+    public Light light;
+    public float defaultIntesity = 1f;
+    public MeshRenderer meshRenderer;
+    public string colorPropertyName;
+
+    [Header("Text Components")]
+    public TMP_Text titleText;
+    public TMP_Text outerTitleText;
+    public TMP_Text descriptionText;
+
+    [Header("Dimensions")]
+    public Transform scaleTarget;
+    public Vector3 collapsedScale = Vector3.one;
+    public Vector3 expandedScale = Vector3.one;
+    public float timeToScale = 1f;
+    public Ease ease = Ease.Linear;
+
+    [Header("GameObject specific")]
     public MaterialPropertyBlockHelper propertyHelper;
+    public bool isForceDrop = false;
+    public bool positionLockOverride = false;
+    public Vector3 originalPos = Vector3.zero; // local space
+    public XRBaseInteractable interactable;
+    public Node node;
+
     private Color color = new();
     private string displayName = "";
+    private bool isPositionLocked = false; // indicates if the node positon is driven by animation
+    private Vector3 force;
+    private bool isExpanded = false;
+    private Typewriter outerTitleTypewriter;
+    private Typewriter descriptionTypewriter;
+    private Sequence expandSequence;
+
+    #region Properties
     public Color Color
     {
         get { return color; }
         set
         {
             color = value;
+
             if (light != null)
             {
                 Color linearColor = color.linear;
@@ -28,16 +62,11 @@ public class NodeProperties : MonoBehaviour
                 vecColor.Normalize();
                 light.color = (Color)new Vector4(vecColor.x, vecColor.y, vecColor.z, 1);
             }
-
-            // this works but not compatiable
-            //if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
-            //meshRenderer.GetPropertyBlock(propertyBlock, 0);
-            //propertyBlock.SetColor(colorPropertyName, color * materialInstesity);
-            //meshRenderer.SetPropertyBlock(propertyBlock);
-
-            if (propertyHelper == null) return;
-            MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
-            propertyBlock?.SetColor(colorPropertyName, color);
+            if (propertyHelper != null)
+            {
+                MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
+                propertyBlock?.SetColor(colorPropertyName, color);
+            }
         }
     }
     public string DisplayName
@@ -46,23 +75,13 @@ public class NodeProperties : MonoBehaviour
         set
         {
             displayName = value;
-            displayText.text = displayName;
+            titleText.text = displayName;
+            if (outerTitleTypewriter == null) outerTitleTypewriter = outerTitleText.transform.GetComponent<Typewriter>();
+            outerTitleTypewriter.text = displayName;
+            outerTitleTypewriter.ResetCursor();
+            //displayText.text = displayName;
         }
     }
-
-    [Header("Color")]
-    public Light light;
-    //public Material material;
-    public MeshRenderer meshRenderer;
-    public string colorPropertyName;
-
-    [Header("Strings")]
-    public TMP_Text displayText;
-
-    [Header("GameObject specific")]
-    public bool isForceDrop = false;
-    public bool positionLockOverride = false;
-    private bool isPositionLocked = false; // indicates if the node positon is driven by animation
     public bool IsPositionLocked
     {
         get { return isPositionLocked; }
@@ -75,7 +94,6 @@ public class NodeProperties : MonoBehaviour
             }
         }
     }
-    private Vector3 force;
     public Vector3 Force
     {
         get { return force; }
@@ -86,8 +104,6 @@ public class NodeProperties : MonoBehaviour
             force = value;
         }
     }
-    public Node node;
-    public Vector3 originalPos = Vector3.zero; // local space
     public Vector3 TheoreticalPosition
     {
         get
@@ -96,11 +112,97 @@ public class NodeProperties : MonoBehaviour
             return transform.localPosition;
         }
     }
-    public XRBaseInteractable interactable;
+    public bool IsExpanded
+    {
+        get { return isExpanded; }
+        set
+        {
+            isExpanded = value;
+            expandSequence.Kill();
+
+            if (propertyHelper != null)
+            {
+                MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
+                propertyBlock?.SetInt("_IsExpanded", isExpanded ? 1 : 0);
+            }
+
+            outerTitleTypewriter.isUntyping = isExpanded;
+            outerTitleTypewriter.ResetCursor();
+
+            positionLockOverride = isExpanded;
+            if (isExpanded)
+            {
+                descriptionText.enabled = false;
+                outerTitleTypewriter.UntypeText();
+                return;
+            }
+
+            titleText.enabled = false;
+            expandSequence = DOTween.Sequence();
+            expandSequence.Append(scaleTarget.DOScale(collapsedScale, timeToScale));
+            expandSequence.Join(DOVirtual.Float(defaultIntesity, 0, timeToScale, (value) =>
+            {
+                light.intensity = value;
+            }));
+            expandSequence.SetEase(ease);
+            expandSequence.onComplete = () =>
+            {
+                titleText.enabled = false;
+                outerTitleText.enabled = true;
+                descriptionText.enabled = true;
+
+                outerTitleTypewriter.TypeText();
+            };
+            
+        }
+    }
+    #endregion
+
 
     private void Start()
     {
         if (interactable == null) interactable = GetComponent<XRBaseInteractable>();
+        if (scaleTarget == null) scaleTarget = transform;
+
+        outerTitleTypewriter = outerTitleText.transform.GetComponent<Typewriter>();
+        descriptionTypewriter = descriptionText.transform.GetComponent<Typewriter>();
+
+        outerTitleTypewriter.onFinish.AddListener(OuterTitleFinish);
+    }
+
+    public void SetExpanded(bool isExpanded, bool skipAnimation = false)
+    {
+        if (!skipAnimation)
+        {
+            IsExpanded = isExpanded;
+            return;
+        }
+
+        this.isExpanded = isExpanded;
+
+        if (propertyHelper != null)
+        {
+            MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
+            propertyBlock?.SetInt("_IsExpanded", isExpanded ? 1 : 0);
+        }
+
+        outerTitleTypewriter.isUntyping = isExpanded;
+        outerTitleTypewriter.ResetCursor();
+
+        positionLockOverride = isExpanded;
+        light.enabled = isExpanded;
+        scaleTarget.localScale = isExpanded ? expandedScale : collapsedScale;
+        titleText.enabled = isExpanded;
+        outerTitleText.enabled = !isExpanded;
+        descriptionText.enabled = !isExpanded;
+    }
+    public void SetDescritpion(string text)
+    {
+        descriptionTypewriter.text = text;
+    }
+    public void RegisterSelectCallback()
+    {
+
     }
 
     public override bool Equals(object obj)
@@ -112,5 +214,31 @@ public class NodeProperties : MonoBehaviour
     public override int GetHashCode()
     {
         return HashCode.Combine(base.GetHashCode(), node);
+    }
+
+    private void OuterTitleFinish()
+    {
+        if (!isExpanded) return;
+
+        titleText.enabled = true;
+        outerTitleText.enabled = false;
+        descriptionText.enabled = false;
+
+        titleText.color = new Color(1, 1, 1, 0);
+
+        expandSequence = DOTween.Sequence();
+        expandSequence.Append(scaleTarget.DOScale(expandedScale, timeToScale).SetEase(ease));
+        expandSequence.Join(DOVirtual.Float(0, defaultIntesity, timeToScale, (value) =>
+        {
+            light.intensity = value;
+        }));
+        expandSequence.Append(DOVirtual.Color(new Color(1, 1, 1, 0), Color.white, timeToScale, (value) =>
+        {
+            titleText.color = value;
+        }));
+        //expandSequence.onComplete = () =>
+        //{
+            
+        //};
     }
 }

@@ -48,7 +48,9 @@ Material:
     - _GridPower: 12
     - _GridTickness: 0.005
     - _HigherGridThickness: 0.01
+    - _IsExpanded: 0
     - _IsInverted: 1
+    - _NoiseSize: 0.3
     - _OpacityPower: 1
     - _QueueControl: 1
     - _QueueOffset: 1

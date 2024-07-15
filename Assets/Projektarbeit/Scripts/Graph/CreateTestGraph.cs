@@ -1,40 +1,46 @@
 using DG.Tweening;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 using System.Collections;
+
 using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 using UnityEngine.XR.Interaction.Toolkit;
 using static JSONClasses;
-using static JSONClasses.CategoryObject;
 
 public class CreateTestGraph : MonoBehaviour
 {
-    public GameObject nodeExpanededPrefab;
+    [Header("Prefabs")]
+    //public GameObject nodeExpanededPrefab;
     public GameObject nodeCollabsedPrefab;
     public GameObject nodeLineVFXPrefab;
+    [Header("Config")]
     public float materialInstesity = 3f;
     public float targetDistance = .5f;
     public float repelFactor = .01f;
-    //public float springFactor = .01f;
     public float forceFactor = .01f;
     public float selectDuration = 1f;
+    public float hideSpeed = 1f;
 
     private Queue<Node> openList = new();
     private HashSet<Node> closedList = new();
+    private Transform graphParent = null;
     private Transform nodeParent = null;
     private Transform lineParent = null;
     private NodeProperties[] nodeProperties = new NodeProperties[0];
     private NodeProperties selectedNode = null;
     private Sequence selectSequence = null;
+    private Sequence scaleSequence;
+    private bool isVisible = true;
+    private bool isSuspended = false;
 
     private void Start()
     {
-        lineParent = SpawnEmpty("Lines");
-        nodeParent = SpawnEmpty("Nodes");
+        graphParent = SpawnEmpty("Content");
+        lineParent = SpawnEmpty("Lines", graphParent);
+        nodeParent = SpawnEmpty("Nodes", graphParent);
 
         float intesityFactor = Mathf.Pow(2, materialInstesity);
 
@@ -96,6 +102,8 @@ public class CreateTestGraph : MonoBehaviour
     // https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=be33ebd01f336c04a1db20830576612ab45b1b9b
     private void Update()
     {
+        if (isSuspended) return;
+
         // repel other nodes
         for (int i = 0; i < nodeProperties.Length - 1; i++)
         {
@@ -107,7 +115,6 @@ public class CreateTestGraph : MonoBehaviour
                 float distance = dif.magnitude;
                 //if (distance > targetDistance) continue;
 
-                //Vector3 normal = dif.normalized;
                 float repelForce = repelFactor * Mathf.Pow(targetDistance, 2) / Mathf.Pow(distance, 2);
 
                 node.Force += dif * repelForce;
@@ -120,7 +127,6 @@ public class CreateTestGraph : MonoBehaviour
             NodeProperties node = nodeProperties[i];
             node.node.neighbors?.ForEach(neighbor =>
             {
-                // TODO: use edge weigth instad of targetDistance
                 Vector3 dif = node.TheoreticalPosition - neighbor.node.properties.TheoreticalPosition;
                 node.Force -= dif * (dif.magnitude / (targetDistance * neighbor.metric));
             });
@@ -133,14 +139,72 @@ public class CreateTestGraph : MonoBehaviour
         }
     }
 
-    private Transform SpawnEmpty(string name)
+    // TODO: test
+    //private void OnBecameVisible()
+    //{
+    //    isSuspended = false;
+    //}
+    //private void OnBecameInvisible()
+    //{
+    //    isSuspended = true;
+    //}
+
+    public bool GetIsGraphEnabled()
+    {
+        return isVisible;
+    }
+    public Sequence SetIsGraphEnabled(bool value)
+    {
+        if (isVisible == value) return null;
+
+        isVisible = value;
+
+        scaleSequence.Kill(false);
+        scaleSequence = DOTween.Sequence();
+        TweenerCore<Vector3, Vector3, VectorOptions> tween;
+        if (isVisible)
+        {
+            graphParent.gameObject.SetActive(true);
+            StartCoroutine(LineUpdateFixCorutine());
+            tween = graphParent.DOScale(Vector3.one, hideSpeed * 2);
+            tween.SetEase(Ease.OutSine);
+            tween.onComplete = () =>
+            {
+                isSuspended = false;
+            };
+            scaleSequence.Append(tween);
+            return scaleSequence;
+        }
+
+        isSuspended = true;
+        tween = graphParent.DOScale(Vector3.zero, hideSpeed);
+        tween.onComplete = () =>
+        {
+            graphParent.gameObject.SetActive(false);
+        };
+
+        return scaleSequence;
+    }
+    // the vfx propertybinder dosn't update correctly
+    // after the graph has benn closed for a few secounds
+    // to fix it toggle the lines in the next frame (current frame dosn't work)
+    private IEnumerator LineUpdateFixCorutine()
+    {
+        yield return 0; // wait for next frame
+        lineParent.gameObject.SetActive(false);
+        lineParent.gameObject.SetActive(true);
+        yield return null;
+    }
+
+    private Transform SpawnEmpty(string name, Transform parent = null)
     {
         GameObject go = new GameObject(name);
-        go.transform.parent = transform;
+        go.transform.parent = parent == null ? transform : parent;
         go.transform.localPosition = Vector3.zero;
         return go.transform;
     }
 
+    // Creates the Graph from the root breath first
     // https://stackoverflow.com/questions/31247634/how-to-keep-track-of-depth-in-breadth-first-search
     private void SpawnGraph(Node root)
     {
@@ -148,7 +212,7 @@ public class CreateTestGraph : MonoBehaviour
         closedList.Clear();
 
         List<NodeProperties> nodeProperties = new();
-        NodeProperties properties = Instantiate(nodeExpanededPrefab, nodeParent).GetComponent<NodeProperties>();
+        NodeProperties properties = Instantiate(nodeCollabsedPrefab, nodeParent).GetComponent<NodeProperties>();
         int depth = 1;
 
         root.neighbors.ForEach(n => openList.Enqueue(n.node));
@@ -160,6 +224,7 @@ public class CreateTestGraph : MonoBehaviour
         root.gameObject = properties.gameObject;
         nodeProperties.Add(properties);
         selectedNode = properties;
+        properties.SetExpanded(true, true);
         properties.interactable.activated.AddListener(SetSelectedNode);
 
         while (openList.Count > 0)
@@ -178,11 +243,12 @@ public class CreateTestGraph : MonoBehaviour
 
             // spawn node
             properties = Instantiate(nodeCollabsedPrefab, nodeParent).GetComponent<NodeProperties>();
-            properties.gameObject.transform.localPosition = Random.onUnitSphere * depth * targetDistance;
+            properties.gameObject.transform.localPosition = depth * targetDistance * Random.onUnitSphere;
             properties.gameObject.name = node.name;
             SetNodeProperties(node, properties);
             node.gameObject = properties.gameObject;
             nodeProperties.Add(properties);
+            properties.SetExpanded(false);
             properties.interactable.activated.AddListener(SetSelectedNode);
 
             node.neighbors.ForEach(n =>
@@ -221,20 +287,21 @@ public class CreateTestGraph : MonoBehaviour
         nodeProperties.DisplayName = node.displayName;
     }
 
+    // gets called wenn a node has been selected
     private void SetSelectedNode(ActivateEventArgs args)
     {
         NodeProperties property = args.interactableObject.transform.GetComponent<NodeProperties>();
         if (selectedNode == property) return;
 
-        selectedNode.positionLockOverride = false;
-        selectedNode.IsPositionLocked = false;
-        property.positionLockOverride = true;
         var interactor = property.transform.GetComponent<XRBaseInteractable>().interactorsSelecting[0] as XRBaseInteractor;
-
-        property.isForceDrop = true;
         interactor.allowSelect = false;
+        
+        selectedNode.IsPositionLocked = false;
+        selectedNode.IsExpanded = false;
 
-        //selectSequence.Kill(true);
+        property.positionLockOverride = true;
+        property.isForceDrop = true;
+
         selectSequence = DOTween.Sequence();
         selectSequence.Append(property.transform.DOMove(transform.position, selectDuration).SetEase(Ease.OutExpo));
         selectSequence.onUpdate = () =>
@@ -246,12 +313,14 @@ public class CreateTestGraph : MonoBehaviour
             interactor.allowSelect = true;
             interactor.allowHover = true;
             property.isForceDrop = false;
+            property.IsExpanded = true;
         };
 
         selectedNode = property;
     }
 }
 
+// https://forum.unity.com/threads/assign-property-binder-targets-via-script.1093306/
 public class VFXPositionBinderCustom : VFXBinderBase
 {
     public string Property { get { return (string)m_Property; } set { m_Property = value; } }
