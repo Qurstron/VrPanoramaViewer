@@ -12,20 +12,17 @@ using static JSONClasses;
 public class MenuController : MonoBehaviour
 {
     public StateControler stateControler;
-    public DownloadTexture downloader;
+    public FileManager downloader;
     public GameObject dataSourcePrefab;
     public GameObject buttonPrefab;
     public GameObject serverErrorPrefab;
     public GameObject localRoot;
-    //public GameObject serverRoot;
+
     // TODO: load this from a config
     public Server[] servers = { new("Server", "http://localhost:7206/") }; // serverName, serverUrl
-    //public string serverUrl = "http://localhost:7206/";
 
     private List<GameObject> buttons = new();
-    //private List<PanoramaMenuEntry> localPanoramas = new();
     private TaskScheduler scheduler;
-    //private string contentPath = "/Content";
 
     void Start()
     {
@@ -52,15 +49,9 @@ public class MenuController : MonoBehaviour
             serverDataSource.GetComponentInChildren<TMP_Text>().text = $"{server.name} ({uri.Host})";
             serverDataSource.GetComponentInChildren<Button>().onClick.AddListener(reload);
 
-            //StartCoroutine(downloader.LoadOverview(server.url + "Content/Overview",
-            //    panoramas => { AddServerButtons(serverRoot, server, panoramas); },
-            //    () => { DisplayConnectionProblem(serverRoot, server); })
-            //);
             reload();
         }
-        //if (!serverUrl.EndsWith('/')) serverUrl += "/";
 
-        //StartCoroutine(downloader.LoadOverview(serverUrl + "Content/Overview", AddServerButtons, DisplayConnectionProblem));
         AddLocalButtons(downloader.GetLocalPanoramas().ToArray());
         scheduler = TaskScheduler.FromCurrentSynchronizationContext();
     }
@@ -75,7 +66,7 @@ public class MenuController : MonoBehaviour
             button.GetComponentInChildren<Button>().onClick.AddListener(() => 
             {
                 Debug.Log(server.url + "Content/" + panorama.name);
-                StartCoroutine(downloader.SavePanorama(server.url + "Content/files/" + panorama.name, panorama.name, (d) =>
+                StartCoroutine(downloader.SavePanorama(server.url + "Content/files/" + panorama.name, panorama.name, () =>
                 {
                     AddLocalButton(panorama);
                 }));
@@ -98,6 +89,7 @@ public class MenuController : MonoBehaviour
             {
                 downloader.LoadLocalPanorama(panorama.name).ContinueWith(task =>
                 {
+                    //if (!task.IsCompletedSuccessfully) return;
                     stateControler.ToggleMenu();
                 }, scheduler);
             });
@@ -113,10 +105,8 @@ public class MenuController : MonoBehaviour
     }
     private void DisplayConnectionProblem(GameObject serverRoot, Server server)
     {
-        Debug.Log($"unable to load overview from {server.url}");
-        var error = Instantiate(serverErrorPrefab, serverRoot.transform);
+        GameObject error = Instantiate(serverErrorPrefab, serverRoot.transform);
         error.GetComponent<TMP_Text>().text = $"unable to load overview from {server.url}";
-        //error.GetComponent<TMP_Text>().text = $"unable to connect to {Application.persistentDataPath}";
     }
 
     public class Server

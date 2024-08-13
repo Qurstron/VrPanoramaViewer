@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 9af23ba5fa5364ff598888460e0e2759, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 5cac18acd181b144c980ccaf622cead5, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -1080,7 +1080,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   positionParent: {fileID: 1383341289}
-  defaultTexture: {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
+  defaultTexture: {fileID: 2800000, guid: 11627708bbd3de147b78aaff5ddd7f0c, type: 3}
   panoramaRenderer: {fileID: 1143439105}
   labelPrefab: {fileID: 6274771800109380890, guid: 20c00645dbb9acb4890cf280fed6a738, type: 3}
   LinePrefab: {fileID: 5408252529823033620, guid: 74aecb3559ef0a6429d0f49d88dde611, type: 3}
@@ -3010,7 +3010,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timelineController: {fileID: 755536588}
+  graphUI: {fileID: 1166959168}
   panoramaSphereController: {fileID: 369690833}
+  testGLTFPath: 
 --- !u!114 &783701745
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3944,6 +3946,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 328216593633855077, guid: 085ce58b196caa446a8545c9dd388793, type: 3}
   m_PrefabInstance: {fileID: 789023170}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &962547287 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6283110561029435272, guid: 3405290cc9a00c34bbd425b05c494f62, type: 3}
+  m_PrefabInstance: {fileID: 122114647}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &968108301
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4681,6 +4694,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 000c2566e017c2545b4c2070a8f124e2, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 000c2566e017c2545b4c2070a8f124e2, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 3bd1b9364ee7fd349ac2e0310221f51d, type: 2}
@@ -4855,14 +4872,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dfe85c53f7f75d45ada5a5c159f0319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  panoramaSphereController: {fileID: 369690833}
+  dropdown: {fileID: 962547287}
   nodeCollabsedPrefab: {fileID: 8270519866877529946, guid: 2b0df155ab6fcc34ca33ab5103498747, type: 3}
   nodeLineVFXPrefab: {fileID: 3206987916467785784, guid: f796e8045ef4b954d88dbdd39daa539c, type: 3}
   materialInstesity: 3
-  targetDistance: 0.3
+  targetDistance: 0.2
   repelFactor: 1
   forceFactor: 0.01
   selectDuration: 1.5
   hideSpeed: 0.5
+  EquilibriumEpsilon: 0.000001
+  floorHeight: -0.2
 --- !u!4 &1166959169
 Transform:
   m_ObjectHideFlags: 0
@@ -4872,7 +4893,7 @@ Transform:
   m_GameObject: {fileID: 1166959167}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.2, z: 0.751}
+  m_LocalPosition: {x: 0, y: 1.472, z: 0.751}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -9380,7 +9401,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c6984c48aed9a154294088f4265d8478, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.564
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c6984c48aed9a154294088f4265d8478, type: 3}
       propertyPath: m_LocalPosition.y

@@ -9,7 +9,7 @@ public class VisibilityButton : MonoBehaviour
 {
     public Image visible;
     public Image hidden;
-    public CreateTestGraph graph;
+    public GraphUI graph;
     public SpriteRenderer spriteRenderer;
     public float hidePopupSpeed = 1f;
     public float hidePopupDelay = 1f;

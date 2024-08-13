@@ -46,99 +46,44 @@ public class PanoramaSphereController : MonoBehaviour
         panoramaRenderer.material.mainTexture = defaultTexture;
     }
 
-    public void SetApperance(string texName, CategoryObject cat)
+    public void SetApperance(NodeContent content)
     {
         foreach (Transform child in transform)
         {
             if (child.name == "Sphere") continue;
             Destroy(child.gameObject);
         }
-        currentTextureName = texName;
+        currentTextureName = content.texture;
         ReloadTexture();
-        //panoramaMaterial.SetTexture("_MainTex", texture);
 
-        if (cat == null) return;
+        if (content == null) return;
 
-        gameObject.GetNamedChild("Sphere").transform.rotation = Quaternion.Euler(-90, cat.latitudeoffset.GetValueOrDefault(), 0);
+        gameObject.GetNamedChild("Sphere").transform.rotation = Quaternion.Euler(-90, content.latitudeOffset.GetValueOrDefault(), 0);
 
-        // TODO: fill
-        if (cat.labels != null)
+        if (content.labels != null)
         {
-            foreach (CategoryObject.Label label in cat.labels)
+            foreach (NodeContent.Label label in content.labels)
             {
-                var labelObject = Instantiate(labelPrefab, gameObject.transform);
-                labelObject.transform.localPosition = convertArrayToPos(label.pos, radiusLabel);
-                labelObject.transform.localRotation = Quaternion.Euler(-label.pos[0], label.pos[1], 0);
-
-                string labelText = "";
-                if (!string.IsNullOrEmpty(label.header))
-                {
-                    labelText = $"<size=0.8><u>{label.header}</u></size>";
-                    if (!string.IsNullOrEmpty(label.header)) labelText += "\n";
-                }
-                labelText += label.content;
-                labelObject.GetNamedChild("Text").GetComponent<TMP_Text>().text = labelText;
-
-                //var header = labelObject.GetNamedChild("Header");
-                //var content = labelObject.GetNamedChild("Content");
-
-                //if (label.header == null)
-                //{
-                //    labelObject.GetNamedChild("Content").transform.position = header.transform.position;
-                //    Destroy(header);
-                //}
-                //else labelObject.GetNamedChild("Header").GetComponent<TMP_Text>().text = label.header;
-                //if (label.content == null) Destroy(content);
-                //content.GetComponent<TMP_Text>().text = label.content;
+                CreateLable(label);
             }
         }
-
-        if (cat.lines != null)
+        if (content.lines != null)
         {
-            foreach (CategoryObject.Line l in cat.lines)
+            foreach (NodeContent.Line line in content.lines)
             {
-                if (l.coords == null) continue; // probably an Config error if this is true
-
-                GameObject line = Instantiate(LinePrefab, gameObject.transform);
-                LineRenderer lineRenderer = line.GetComponentInChildren<LineRenderer>();
-                List<Vector3> positions = new();
-                Vector3 start;
-                Vector3 end = convertArrayToPos(l.coords.First(), radiusLine, l.flipcoords);
-
-                for (int i = 1; i < l.coords.Count; i++)
+                if (line.coords == null)
                 {
-                    positions.Add(end);
-                    start = end;
-                    end = convertArrayToPos(l.coords[i], radiusLine, l.flipcoords);
-
-                    float distance = Vector3.Distance(start, end);
-                    if (distance < maxLineDistance) continue;
-
-                    float step = 1 / (distance / maxLineDistance);
-                    for (float f = step; f < 1; f += step)
-                    {
-                        positions.Add(Vector3.Slerp(start, end, f));
-                    }
+                    Debug.LogWarning("Found line with no coords! this is probably an Config error");
+                    continue;
                 }
-                positions.Add(end);
-
-                lineRenderer.positionCount = positions.Count;
-                lineRenderer.SetPositions(positions.ToArray());
-
-                lineRenderer.widthCurve = new AnimationCurve(new Keyframe[] {new(0, l.width)});
-
-                Color color;
-                if (ColorUtility.TryParseHtmlString(l.color, out color))
-                {
-                    Gradient g = new Gradient();
-                    g.SetKeys(new GradientColorKey[] { new GradientColorKey(color, 0) }, new GradientAlphaKey[] { new GradientAlphaKey(1, 0) });
-                    lineRenderer.colorGradient = g;
-                }
+                CreateLine(line);
             }
         }
     }
     public void ReloadTexture()
     {
+        if (!(panoramaRenderer.enabled = !string.IsNullOrEmpty(currentTextureName))) return;
+
         Texture2D texture = new(1, 1);
         texture.LoadImage(TextureData.GetValueOrDefault(currentTextureName));
         panoramaRenderer.material.mainTexture = texture;
@@ -174,5 +119,62 @@ public class PanoramaSphereController : MonoBehaviour
             );
 
         return result * radius;
+    }
+    private GameObject CreateLable(NodeContent.Label label)
+    {
+        var labelObject = Instantiate(labelPrefab, gameObject.transform);
+        labelObject.transform.localPosition = convertArrayToPos(label.pos, radiusLabel);
+        labelObject.transform.localRotation = Quaternion.Euler(-label.pos[0], label.pos[1], 0);
+
+        string labelText = "";
+        if (!string.IsNullOrEmpty(label.header))
+        {
+            labelText = $"<size=0.8><u>{label.header}</u></size>";
+            if (!string.IsNullOrEmpty(label.header)) labelText += "\n";
+        }
+        labelText += label.content;
+        labelObject.GetNamedChild("Text").GetComponent<TMP_Text>().text = labelText;
+
+        return labelObject;
+    }
+    private GameObject CreateLine(NodeContent.Line line)
+    {
+        GameObject lineObject = Instantiate(LinePrefab, gameObject.transform);
+        LineRenderer lineRenderer = lineObject.GetComponentInChildren<LineRenderer>();
+        List<Vector3> positions = new();
+        Vector3 start;
+        Vector3 end = convertArrayToPos(line.coords.First(), radiusLine, line.flipcoords);
+
+        for (int i = 1; i < line.coords.Count; i++)
+        {
+            positions.Add(end);
+            start = end;
+            end = convertArrayToPos(line.coords[i], radiusLine, line.flipcoords);
+
+            float distance = Vector3.Distance(start, end);
+            if (distance < maxLineDistance) continue;
+
+            float step = 1 / (distance / maxLineDistance);
+            for (float f = step; f < 1; f += step)
+            {
+                positions.Add(Vector3.Slerp(start, end, f));
+            }
+        }
+        positions.Add(end);
+
+        lineRenderer.positionCount = positions.Count;
+        lineRenderer.SetPositions(positions.ToArray());
+
+        lineRenderer.widthCurve = new AnimationCurve(new Keyframe[] { new(0, line.width) });
+
+        Color color;
+        if (ColorUtility.TryParseHtmlString(line.color, out color))
+        {
+            Gradient g = new Gradient();
+            g.SetKeys(new GradientColorKey[] { new GradientColorKey(color, 0) }, new GradientAlphaKey[] { new GradientAlphaKey(1, 0) });
+            lineRenderer.colorGradient = g;
+        }
+
+        return lineObject;
     }
 }
