@@ -1072,7 +1072,7 @@ MonoBehaviour:
   startDelay: 0
   typeDelay: 0.01
   isUntyping: 1
-  startWithText: 1
+  startWithText: 0
   useTmpText: 0
   onFinish:
     m_PersistentCalls:
@@ -1306,6 +1306,8 @@ MonoBehaviour:
     displayName: 
     description: 
     color: 
+    neighbors: []
+    content: []
 --- !u!114 &3799391064595641790
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 using static JSONClasses;
@@ -43,6 +44,7 @@ public class NodeProperties : MonoBehaviour
     private bool isPositionLocked = false; // indicates if the node positon is driven by animation
     private Vector3 force;
     private bool isExpanded = false;
+    private bool isColorSet = false;
     private Typewriter outerTitleTypewriter;
     private Typewriter descriptionTypewriter;
     private Sequence expandSequence;
@@ -64,8 +66,10 @@ public class NodeProperties : MonoBehaviour
             }
             if (propertyHelper != null)
             {
-                MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
-                propertyBlock?.SetColor(colorPropertyName, color);
+                if (isColorSet = isActiveAndEnabled)
+                {
+                    StartCoroutine(ColorFixer());
+                }
             }
         }
     }
@@ -169,6 +173,13 @@ public class NodeProperties : MonoBehaviour
 
         outerTitleTypewriter.onFinish.AddListener(OuterTitleFinish);
     }
+    private void OnEnable()
+    {
+        if (!isColorSet)
+        {
+            StartCoroutine(ColorFixer());
+        }
+    }
 
     public void SetExpanded(bool isExpanded, bool skipAnimation = false)
     {
@@ -240,5 +251,17 @@ public class NodeProperties : MonoBehaviour
         //{
             
         //};
+    }
+
+    // this GameObject can't be activated and set its color in the same frame,
+    // because propertyHelper.GetMaterialPropertyBlock() will return null and fail,
+    // so that the nodes rim color will be the default one
+    private IEnumerator ColorFixer()
+    {
+        yield return 0;
+
+        MaterialPropertyBlock propertyBlock = propertyHelper.GetMaterialPropertyBlock();
+        propertyBlock?.SetColor(colorPropertyName, color);
+
     }
 }

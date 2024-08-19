@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -21,7 +22,6 @@ public class FileManager : MonoBehaviour
     public TimelineController timelineController;
     public GraphUI graphUI;
     public PanoramaSphereController panoramaSphereController;
-    public string testGLTFPath;
 
     private FileSystemWatcher watcher = null;
     private FileSystemEventArgs lastArgs = null; // safe args for main thread
@@ -154,7 +154,7 @@ public class FileManager : MonoBehaviour
     // returns null if Panorama wasn't found or is otherwise not available/readeble
     public async Task<Config> LoadLocalPanorama(string name)
     {
-        string folderPath = Path.Combine(Application.persistentDataPath, name);
+        string folderPath = GetFolderPath(name);
         if (!Directory.Exists(folderPath))
         {
             Debug.LogErrorFormat("{0} dosn't exists", folderPath);
@@ -166,6 +166,7 @@ public class FileManager : MonoBehaviour
         {
             config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(folderPath + "/config.json"));
             config.Construct(name);
+            config.folderPath = folderPath;
         }
         catch (Exception e)
         {
@@ -178,16 +179,22 @@ public class FileManager : MonoBehaviour
         {
             return graphUI.Config;
         }
-        // TODO: fix
-        //if (!ValidateAllPaths(config))
-        //    throw new Exception("Paths in Config could not be fully validated");
+        if (!ValidateAllPaths(config))
+            throw new Exception("Paths in Config could not be fully validated");
 
-        Dictionary<string, byte[]> textureData = new();
+        Dictionary<string, byte[]> contentData = new();
+        Dictionary<string, GltfImport> gltfs = new();
         foreach (string texName in config.TextureNames)
         {
-            textureData.Add(texName, await File.ReadAllBytesAsync(Path.Combine(folderPath, texName)));
+            contentData.Add(texName, await File.ReadAllBytesAsync(Path.Combine(folderPath, texName)));
         }
-        panoramaSphereController.TextureData = textureData;
+        foreach (string objPath in config.ObjectsPaths)
+        {
+            gltfs.Add(objPath, await LoadGltfBinaryFromMemory(Path.Combine(folderPath, objPath)));
+        }
+        panoramaSphereController.config = config;
+        panoramaSphereController.ContentData = contentData;
+        panoramaSphereController.Gltfs = gltfs;
 
         if (watcher != null) watcher.Dispose();
         watcher = new FileSystemWatcher();
@@ -197,37 +204,50 @@ public class FileManager : MonoBehaviour
         watcher.Changed += FileChanged;
         watcher.EnableRaisingEvents = true;
 
-        //timelineController.Fill(config);
         graphUI.SetConfig(config);
 
         Debug.Log($"config {config.name} loaded");
         return config;
     }
 
-    private async void LoadGltfBinaryFromMemory(string path)
+    public string GetFolderPath(string name)
     {
-        byte[] data = File.ReadAllBytes(path);
-        var gltf = new GltfImport();
-        bool success = await gltf.LoadGltfBinary(
-            data,
-            // The URI of the original data is important for resolving relative URIs within the glTF
-            new Uri(path)
-            );
-        if (success)
-        {
-            success = await gltf.InstantiateMainSceneAsync(transform);
-        }
+        return Path.Combine(Application.persistentDataPath, name);
     }
 
-    // returns true if all paths in config are exists and are inside 
+    private async Task<GltfImport> LoadGltfBinaryFromMemory(string path)
+    {
+        byte[] data = await File.ReadAllBytesAsync(path);
+        var gltf = new GltfImport();
+        // https://stackoverflow.com/questions/75613904/unity-gltfast-cant-load-my-gltf-file-with-loadgltfbinary-function
+        bool success = await gltf.Load(data, new Uri(path));
+        if (success)
+        {
+            return gltf;
+        }
+
+        Debug.LogError($"could not load {path}");
+        return null;
+    }
+
+    // TODO: fix
+    // returns true if all paths in config are exists and are inside panorama folder
     private bool ValidateAllPaths(Config config)
     {
-        string folderPath = Path.Combine(Application.persistentDataPath, name);
+        string folderPath = Path.Combine(Application.persistentDataPath, config.name);
 
-        foreach (NodeContent cat in config.AllNodeContents())
+        try
         {
-            var file = Directory.GetFiles(folderPath, cat.texture, SearchOption.AllDirectories).FirstOrDefault();
-            if (file == null) return false;
+            foreach (NodeContent cat in config.AllNodeContents())
+            {
+                if (string.IsNullOrEmpty(cat.texture)) continue;
+                var file = Directory.GetFiles(folderPath, cat.texture, SearchOption.AllDirectories).FirstOrDefault();
+                if (file == null) return false;
+            }
+        }
+        catch
+        {
+            return false;
         }
 
         return true;
@@ -238,11 +258,7 @@ public class FileManager : MonoBehaviour
         lastArgs = e;
         fileChanged = true;
     }
-    private void Start()
-    {
-        //animator.Play(stateName, 0);
-        //LoadGltfBinaryFromMemory(testGLTFPath);
-    }
+
     private void Update()
     {
         if (!fileChanged) return;
@@ -261,12 +277,12 @@ public class FileManager : MonoBehaviour
             // add new images
             foreach (string texName in graphUI.Config.TextureNames.Except(newNames))
             {
-                panoramaSphereController.TextureData.Add(texName, File.ReadAllBytes(folderpath + "/" + texName));
+                panoramaSphereController.ContentData.Add(texName, File.ReadAllBytes(folderpath + "/" + texName));
             }
             // remove obsolete images
             foreach (string texName in newNames.Except(graphUI.Config.TextureNames))
             {
-                panoramaSphereController.TextureData.Remove(texName);
+                panoramaSphereController.ContentData.Remove(texName);
             }
 
             //timelineController.Fill(config, true); // this will update the panoramaSphereController 
@@ -274,7 +290,7 @@ public class FileManager : MonoBehaviour
             return;
         }
         // Image change
-        if (panoramaSphereController.TextureData.ContainsKey(filename))
+        if (panoramaSphereController.ContentData.ContainsKey(filename))
         {
             panoramaSphereController.UpdateTexture(filename, File.ReadAllBytes(lastArgs.FullPath));
             return;

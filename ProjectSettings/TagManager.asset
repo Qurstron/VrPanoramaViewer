@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Menu
   - Viewer
+  - Anchor
+  - Floppy
   layers:
   - Default
   - TransparentFX

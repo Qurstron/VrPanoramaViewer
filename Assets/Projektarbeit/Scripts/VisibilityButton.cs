@@ -11,6 +11,7 @@ public class VisibilityButton : MonoBehaviour
     public Image hidden;
     public GraphUI graph;
     public SpriteRenderer spriteRenderer;
+    public Color color = Color.white;
     public float hidePopupSpeed = 1f;
     public float hidePopupDelay = 1f;
 
@@ -20,10 +21,10 @@ public class VisibilityButton : MonoBehaviour
     void Start()
     {
         button = GetComponent<Button>();
-        Color originalColor = spriteRenderer.color;
 
         hidden.enabled = false;
         spriteRenderer.enabled = false;
+        spriteRenderer.color = new Color(1, 1, 1, 0);
 
         button.onClick.AddListener(() =>
         {
@@ -35,7 +36,7 @@ public class VisibilityButton : MonoBehaviour
             if (sequence != null && !isVisible)
             {
                 spriteRenderer.enabled = true;
-                sequence.Append(DOVirtual.Color(new Color(1, 1, 1, 0), originalColor, hidePopupSpeed, (value) =>
+                sequence.Append(DOVirtual.Color(new Color(1, 1, 1, 0), color, hidePopupSpeed, (value) =>
                 {
                     spriteRenderer.color = value;
                 }).SetDelay(hidePopupDelay));

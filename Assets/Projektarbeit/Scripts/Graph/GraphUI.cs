@@ -50,10 +50,6 @@ public class GraphUI : MonoBehaviour
 
     private void Start()
     {
-        graphParent = SpawnEmpty("Content");
-        lineParent = SpawnEmpty("Lines", graphParent);
-        nodeParent = SpawnEmpty("Nodes", graphParent);
-
         dropdown.onValueChanged.AddListener((i) =>
         {
             selectedContentIndex = i;
@@ -167,6 +163,7 @@ public class GraphUI : MonoBehaviour
 
     public void SetConfig(Config config, bool tryKeepIndices = false)
     {
+        this.config = config;
         CorrectColor(config);
         SpawnGraph(config.rootNode);
         foreach (string entry in config.categoryNames)
@@ -213,7 +210,7 @@ public class GraphUI : MonoBehaviour
         return scaleSequence;
     }
 
-    // removes all ui elements
+    // removes all relevant ui elements
     private void Clear()
     {
         openList.Clear();
@@ -224,6 +221,13 @@ public class GraphUI : MonoBehaviour
         dropdown.SetValueWithoutNotify(0);
         dropdown.RefreshShownValue();
         selectedContentIndex = 0;
+
+        if (graphParent == null)
+        {
+            graphParent = SpawnEmpty("Content");
+            lineParent = SpawnEmpty("Lines", graphParent);
+            nodeParent = SpawnEmpty("Nodes", graphParent);
+        }
 
         while (lineParent.childCount > 0)
         {
@@ -237,10 +241,14 @@ public class GraphUI : MonoBehaviour
 
     // the vfx propertybinder dosn't update correctly
     // after the graph has benn closed for a few secounds
-    // to fix it toggle the lines in the next frame (current frame dosn't work)
+    // to fix it toggle the lines in the next couple frames (current frame dosn't work)
     private IEnumerator LineUpdateFixCorutine()
     {
-        yield return 0; // wait for next frame
+        for (int i = 0; i < 5; i++)
+        {
+            yield return 0; // wait for next frame
+        }
+
         lineParent.gameObject.SetActive(false);
         lineParent.gameObject.SetActive(true);
         yield return null;
@@ -374,8 +382,8 @@ public class GraphUI : MonoBehaviour
             property.isForceDrop = false;
             property.IsExpanded = true;
 
-            StateChanged();
             selectedNode = property;
+            StateChanged();
         };
 
         isSuspended = false;

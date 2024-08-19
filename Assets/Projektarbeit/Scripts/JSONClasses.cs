@@ -18,6 +18,8 @@ public class JSONClasses
         public string name; // not part of the config.json, needs to be set manualy
         [NonSerialized]
         public Node rootNode;
+        [NonSerialized]
+        public string folderPath;
 
         public Node[] nodes;
         public string description;
@@ -26,6 +28,7 @@ public class JSONClasses
         public NodeContent[] categoryParents;
         //public Edge[] edges;
         public string root;
+        public bool isWip;
 
         private readonly List<NodeContent> constructedNodeContents = new();
         private readonly List<NodeContent> visitedNodeContents = new();
@@ -45,31 +48,56 @@ public class JSONClasses
                     texNames.Add(nodeContent.texture);
                 }
 
-                //foreach (Pic pic in pics)
-                //{
-                //    texNames.Add(pic.name);
-                //    foreach (NodeContent cat in pic.categories)
-                //    {
-                //        texNames.Add(cat.texture);
-                //    }
-                //}
-                //foreach (NodeContent cat in categoryparents)
-                //{
-                //    texNames.Add(cat.texture);
-                //}
-
                 texNames.Remove(null);
                 return texNames;
+            }
+        }
+        public IEnumerable<string> ObjectsPaths
+        {
+            get
+            {
+                if (!isConstructed)
+                {
+                    throw new Exception("Config is not constructed! please call Construct(...) to construct config first");
+                }
+
+                HashSet<string> objPaths = new();
+                foreach (NodeContent nodeContent in AllNodeContents())
+                {
+                    if (nodeContent.objects == null) continue;
+                    foreach (Object3D obj in nodeContent.objects)
+                    {
+                        objPaths.Add(obj.file);
+                    }
+                }
+
+                objPaths.Remove(null);
+                return objPaths;
             }
         }
 
         private bool isConstructed = false;
         public bool IsConstructed { get { return isConstructed; } }
-        // builds categoryparents
+        // preprocess config so that is it easyer to work with
         public void Construct(string name)
         {
             if (isConstructed) return;
             this.name = name;
+
+            if (isWip) Debug.LogWarning("Config is flaged as WIP");
+
+            // validate some basic node characteristic
+            HashSet<string> nodeNames = new();
+            foreach (Node node in nodes)
+            {
+                if (nodeNames.Contains(node.name)) throw new Exception($"Node name: {node.name} is not unique");
+                nodeNames.Add(node.name);
+
+                foreach (var edge in node.neighbors)
+                {
+                    if (edge.weight <= 0) throw new Exception($"Node: {node.name} cannot have a negative or zero wieght to neighbor: {edge.node}");
+                }
+            }
 
             // merge parents into nodeContent
             for (int i = 0; i < nodes.Length; i++)
@@ -82,12 +110,12 @@ public class JSONClasses
                 }
             }
 
+            // convert node data
             Dictionary<string, Node> namedNodes = new();
             foreach (Node node in nodes)
             {
                 namedNodes.Add(node.name, node);
             }
-
             if (namedNodes.TryGetValue(root, out Node r)) rootNode = r;
             else throw new Exception($"The root: {root} could not be found in nodes");
             for (int i = 0; i < nodes.Length; i++)
@@ -100,7 +128,7 @@ public class JSONClasses
                 node.nodeNeighbors = new();
                 foreach (var neighborEdge in node.neighbors)
                 {
-                    if (namedNodes.TryGetValue(neighborEdge.node, out Node neighbor)) node.nodeNeighbors.Add(new Node.NodeEdge(neighbor, neighborEdge.wieght));
+                    if (namedNodes.TryGetValue(neighborEdge.node, out Node neighbor)) node.nodeNeighbors.Add(new Node.NodeEdge(neighbor, neighborEdge.weight));
                     else throw new Exception($"The neighbor: {neighborEdge.node} could not be found in nodes");
                 }
             }
@@ -144,7 +172,13 @@ public class JSONClasses
         {
             if (constructedNodeContents.Contains(nodeContent)) return;
             constructedNodeContents.Add(nodeContent);
-            if (nodeContent.categoryParentIndices == null) return;
+
+            if (nodeContent.categoryParentIndices == null)
+            {
+                nodeContent.Construct();
+                return;
+            }
+
             if (visitedNodeContents.Contains(nodeContent)) throw new Exception("Cyclic dependency in NodeContent parent detected");
             visitedNodeContents.Add(nodeContent);
 
@@ -154,6 +188,8 @@ public class JSONClasses
                 ConstructNodeContentRek(parent);
                 nodeContent.Merge(parent);
             }
+
+            nodeContent.Construct();
         }
     }
 
@@ -190,7 +226,7 @@ public class JSONClasses
         public class NodeEdgeString
         {
             public string node;
-            public float wieght;
+            public float weight;
         }
         public class NodeEdge
         {
@@ -245,6 +281,20 @@ public class JSONClasses
             latitudeOffset ??= parent.latitudeOffset;
             texture ??= parent.texture;
         }
+        public void Construct()
+        {
+            if (objects == null) return;
+            foreach (Object3D obj in objects)
+            {
+                if (obj.addOns == null) continue;
+                foreach (AddOn addOn in obj.addOns)
+                {
+                    AddOn.Type type;
+                    if (!Enum.TryParse(addOn.type, out type)) throw new Exception($"invalid type: {addOn.type}");
+                    addOn.typeClass = type;
+                }
+            }
+        }
 
         public override bool Equals(object obj)
         {
@@ -267,6 +317,7 @@ public class JSONClasses
     {
         public string file;
         public Transform transform;
+        public AddOn[] addOns;
 
         [Serializable]
         public class Transform
@@ -274,6 +325,67 @@ public class JSONClasses
             public float[] translation;
             public float[] rotation;
             public float[] scale;
+
+            public Vector3 Translation
+            {
+                get
+                {
+                    if (translation == null) return Vector3.zero;
+                    return new(translation[0], translation[1], translation[2]);
+                }
+            }
+            public Quaternion Rotation
+            {
+                get
+                {
+                    if (rotation == null) return Quaternion.identity;
+                    return Quaternion.Euler(rotation[0], rotation[1], rotation[2]);
+                }
+            }
+            public Vector3 Scale
+            {
+                get
+                {
+                    if (scale == null) return Vector3.one;
+                    return new(scale[0], scale[1], scale[2]);
+                }
+            }
+
+            //public override void Validate()
+            //{
+            //    if (translation != null)
+            //    {
+            //        if (translation.Length != 3) Invalidate("translation is not of size 3");
+            //    }
+            //    if (rotation != null)
+            //    {
+            //        if (rotation.Length != 3) Invalidate("rotation is not of size 3");
+            //    }
+            //    if (scale != null)
+            //    {
+            //        if (scale.Length != 3) Invalidate("scale is not of size 3");
+            //    }
+            //}
+        }
+    }
+
+    [Serializable]
+    public class AddOn
+    {
+        public string path;
+        public string type;
+        [NonSerialized]
+        public Type typeClass;
+
+        public enum Type
+        {
+            Label
+        }
+
+        [Serializable]
+        public class Label
+        {
+            public string content;
         }
     }
 
@@ -286,4 +398,15 @@ public class JSONClasses
         public long size;
         public long version;
     }
+
+    //public abstract class Validatable
+    //{
+    //    public bool IsValid { get; private set; } = true;
+    //    protected void Invalidate(string reason)
+    //    {
+    //        Debug.LogError(reason);
+    //        IsValid = false;
+    //    }
+    //    public abstract void Validate();
+    //}
 }
