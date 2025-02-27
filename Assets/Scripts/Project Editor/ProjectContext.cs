@@ -1,10 +1,8 @@
-using JetBrains.Annotations;
-using System.Collections;
+using JSONClasses;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using JSONClasses;
 
 /// <summary>
 /// Similar in nature to the mediator programmingpattern

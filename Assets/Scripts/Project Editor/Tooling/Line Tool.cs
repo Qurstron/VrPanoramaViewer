@@ -1,9 +1,7 @@
-using System.Collections;
+using JSONClasses;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
-using JSONClasses;
 
 public class LineTool : Tool, IDownableAngle, IMovable
 {

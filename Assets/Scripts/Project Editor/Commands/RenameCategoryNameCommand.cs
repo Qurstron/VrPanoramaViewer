@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class RenameCategoryNameCommand : IDirtyCommand
 {
     private readonly int index;

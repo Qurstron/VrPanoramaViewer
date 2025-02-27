@@ -1,6 +1,5 @@
-using System.Collections;
-using UnityEngine;
 using SFB;
+using UnityEngine;
 
 public class BasicSample : MonoBehaviour {
     private string _path;

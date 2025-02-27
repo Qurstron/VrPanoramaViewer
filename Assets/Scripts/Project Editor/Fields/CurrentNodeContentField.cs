@@ -1,7 +1,4 @@
 using JSONClasses;
-using System;
-using Unity.Mathematics;
-using Unity.Mathematics.Geometry;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CurrentNodeContentField", menuName = "ConfigFields/CurrentNodeContentField")]

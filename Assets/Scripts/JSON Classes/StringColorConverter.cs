@@ -1,6 +1,5 @@
 using Newtonsoft.Json;
 using System;
-using System.Globalization;
 using UnityEngine;
 
 public class StringColorConverter : JsonConverter

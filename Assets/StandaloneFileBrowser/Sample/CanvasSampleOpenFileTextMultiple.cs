@@ -1,11 +1,9 @@
-using System.Text;
+using SFB;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using SFB;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Button))]
 public class CanvasSampleOpenFileTextMultiple : MonoBehaviour, IPointerDownHandler {

@@ -3,8 +3,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.LookDev;
-using UnityEngine.UI;
 
 [RequireComponent (typeof(TMP_Dropdown))]
 public class NodeContentField : ConfigActor

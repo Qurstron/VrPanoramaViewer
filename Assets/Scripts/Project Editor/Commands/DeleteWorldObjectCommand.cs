@@ -1,7 +1,5 @@
-using JSONClasses;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class DeleteWorldObjectCommand : CDCommand, IDirtyCommand
 {
