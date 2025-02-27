@@ -9,9 +9,11 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 using UnityEngine.XR.Interaction.Toolkit;
-using static JSONClasses;
+using JSONClasses;
+using System;
+using Random = UnityEngine.Random;
 
-public class GraphUI : MonoBehaviour
+public class GraphUI : ConfigActor
 {
     public PanoramaSphereController panoramaSphereController;
     public TMP_Dropdown dropdown;
@@ -41,19 +43,16 @@ public class GraphUI : MonoBehaviour
     private bool isVisible = true;
     private bool isSuspended = false;
     private int selectedContentIndex = 0;
-    private Config config;
+    private Dictionary<Node, NodeProperties> nodeNeighbors = new();
 
-    public Config Config
-    {
-        get { return config; }
-    }
+    //public Config Config { get; private set; }
 
     private void Start()
     {
         dropdown.onValueChanged.AddListener((i) =>
         {
             selectedContentIndex = i;
-            StateChanged();
+            //StateChanged();
         });
 
         //float intesityFactor = Mathf.Pow(2, materialInstesity);
@@ -141,10 +140,12 @@ public class GraphUI : MonoBehaviour
         for (int i = 0; i < nodeProperties.Length; i++)
         {
             NodeProperties node = nodeProperties[i];
-            node.node.nodeNeighbors?.ForEach(neighbor =>
+
+            node.node.NodeNeighbors?.ForEach(neighbor =>
+            //node.node.nodeNeighbors?.ForEach(neighbor =>
             {
-                Vector3 dif = node.TheoreticalPosition - neighbor.node.properties.TheoreticalPosition;
-                float springForce = dif.magnitude / (targetDistance * neighbor.wieght);
+                Vector3 dif = node.TheoreticalPosition - nodeNeighbors.GetValueOrDefault(neighbor).TheoreticalPosition;
+                float springForce = dif.magnitude / targetDistance; // (targetDistance * neighbor.wieght);
 
                 node.Force -= dif.normalized * springForce;
             });
@@ -160,18 +161,22 @@ public class GraphUI : MonoBehaviour
             isSuspended = false;
         }
     }
-
-    public void SetConfig(Config config, bool tryKeepIndices = false)
+    protected override void OnContextChange()
     {
-        this.config = config;
-        CorrectColor(config);
-        SpawnGraph(config.rootNode);
-        foreach (string entry in config.categoryNames)
+        Context.OnConfigChange.AddListener(() =>
         {
-            dropdown.options.Add(new TMP_Dropdown.OptionData(entry));
-        }
+            //CorrectColor(Config);
+            SpawnGraph(Context.Config.rootNode);
+            if (Context.Config.categoryNames != null)
+            {
+                foreach (string entry in Context.Config.categoryNames)
+                {
+                    dropdown.options.Add(new TMP_Dropdown.OptionData(entry));
+                }
+            }
 
-        StateChanged();
+            //StateChanged();
+        });
     }
     public bool GetIsGraphEnabled()
     {
@@ -262,18 +267,6 @@ public class GraphUI : MonoBehaviour
         return go.transform;
     }
 
-    // corrects the node color in config to include hdr intesity
-    // this also include a converion to gamma
-    private void CorrectColor(Config config)
-    {
-        float intesityFactor = Mathf.Pow(2, materialInstesity);
-
-        for (int i = 0; i < config.nodes.Length; i++)
-        {
-            config.nodes[i].convertedColor *= intesityFactor;
-            config.nodes[i].convertedColor = config.nodes[i].convertedColor.gamma;
-        }
-    }
     // Creates the Graph from the root breath first
     // https://stackoverflow.com/questions/31247634/how-to-keep-track-of-depth-in-breadth-first-search
     private void SpawnGraph(Node root)
@@ -284,11 +277,11 @@ public class GraphUI : MonoBehaviour
         NodeProperties properties = Instantiate(nodeCollabsedPrefab, nodeParent).GetComponent<NodeProperties>();
         int depth = 1;
 
-        root.nodeNeighbors.ForEach(n => openList.Enqueue(n.node));
+        root.NodeNeighbors.ForEach(n => openList.Enqueue(n));
         openList.Enqueue(null);
         closedList.Add(root);
 
-        properties.gameObject.name = root.displayName;
+        properties.gameObject.name = root.name;
         SetNodeProperties(root, properties);
         root.gameObject = properties.gameObject;
         nodeProperties.Add(properties);
@@ -308,7 +301,8 @@ public class GraphUI : MonoBehaviour
             }
             if (closedList.Contains(node)) continue;
             closedList.Add(node);
-            node.nodeNeighbors?.ForEach(n => openList.Enqueue(n.node));
+
+            node.NodeNeighbors.ForEach(n => openList.Enqueue(n));
 
             // spawn node
             properties = Instantiate(nodeCollabsedPrefab, nodeParent).GetComponent<NodeProperties>();
@@ -320,10 +314,10 @@ public class GraphUI : MonoBehaviour
             properties.SetExpanded(false);
             properties.interactable.activated.AddListener(SetSelectedNode);
 
-            node.nodeNeighbors.ForEach(n =>
+            node.NodeNeighbors.ForEach(n =>
             {
-                if (!closedList.Contains(n.node)) return;
-                SpawnLine(node, n.node);
+                if (!closedList.Contains(n)) return;
+                SpawnLine(node, n);
             });
         }
 
@@ -335,7 +329,7 @@ public class GraphUI : MonoBehaviour
         VisualEffect effect = go.GetComponent<VisualEffect>();
         VFXPropertyBinder linePropertyBinder = go.GetComponent<VFXPropertyBinder>();
         VFXPositionBinderCustom positionBinder = linePropertyBinder.AddPropertyBinder<VFXPositionBinderCustom>();
-        Gradient gradient = new Gradient();
+        Gradient gradient = new();
 
         positionBinder.Property = "PosStart";
         positionBinder.Target = nodeA.gameObject.transform;
@@ -343,22 +337,26 @@ public class GraphUI : MonoBehaviour
         positionBinder.Property = "PosEnd";
         positionBinder.Target = nodeB.gameObject.transform;
 
-        gradient.colorKeys = new GradientColorKey[] { new GradientColorKey(nodeA.convertedColor.linear, 0), new GradientColorKey(nodeB.convertedColor.linear, 1) };
+        // TODO: Not corrected Vlaues !!!
+        gradient.colorKeys = new GradientColorKey[] { new GradientColorKey(nodeA.Color.linear, 0), new GradientColorKey(nodeB.Color.linear, 1) };
         effect.SetGradient("Gradient", gradient);
         effect.SetFloat("Seed", Random.value);
     }
     private void SetNodeProperties(Node node, NodeProperties nodeProperties)
     {
-        node.properties = nodeProperties;
+        //node.properties = nodeProperties;
+        nodeNeighbors.Add(node, nodeProperties);
 
         nodeProperties.node = node;
-        nodeProperties.Color = node.convertedColor;
-        nodeProperties.DisplayName = node.displayName;
+        nodeProperties.Color = node.GetHDRCorrectedColor(materialInstesity); //node.Color;
+        nodeProperties.DisplayName = node.name;
     }
     private void SetSelectedNode(ActivateEventArgs args)
     {
         NodeProperties property = args.interactableObject.transform.GetComponent<NodeProperties>();
         if (selectedNode == property) return;
+
+        StateChanged(property.node);
 
         var interactor = property.transform.GetComponent<XRBaseInteractable>().interactorsSelecting[0] as XRBaseInteractor;
         interactor.allowSelect = false;
@@ -383,21 +381,21 @@ public class GraphUI : MonoBehaviour
             property.IsExpanded = true;
 
             selectedNode = property;
-            StateChanged();
         };
 
         isSuspended = false;
     }
 
-    private void StateChanged()
+    private void StateChanged(Node node)
     {
         // ugly
-        if (selectedContentIndex >= selectedNode.node.content.Length)
+        if (selectedContentIndex >= selectedNode.node.content.Count)
         {
             selectedContentIndex = 0;
             dropdown.SetValueWithoutNotify(0);
         }
-        panoramaSphereController.SetApperance(selectedNode.node.content[selectedContentIndex]);
+
+        Context.editor.ExecuteCommand(new ChangeSelectedNode(node));
     }
 }
 

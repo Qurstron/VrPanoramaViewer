@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using static JSONClasses;
+using JSONClasses;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -27,7 +28,7 @@ public class MainMenuController : MonoBehaviour
     //private List<GameObject> buttons = new();
     //private TaskScheduler scheduler;
 
-    void Start()
+    private async void Start()
     {
         foreach (var server in servers)
         {
@@ -59,8 +60,8 @@ public class MainMenuController : MonoBehaviour
             //    () => { DisplayConnectionProblem(serverRoot, server); })
             //);
         }
-
-        SpawnFloppies(pos, fileManager.GetLocalPanoramas().ToArray());
+        var panoramas = await fileManager.GetLocalPanoramasInDirectory(Application.persistentDataPath);
+        SpawnFloppies(pos, panoramas.ToArray());
 
         //AddLocalButtons(fileManager.GetLocalPanoramas().ToArray());
         //scheduler = TaskScheduler.FromCurrentSynchronizationContext();
@@ -73,8 +74,9 @@ public class MainMenuController : MonoBehaviour
             GameObject floppyObject = Instantiate(floppyDiskPrefab, pos);
             FloppyDisk floppy = floppyObject.GetComponent<FloppyDisk>();
 
-            floppy.PanoramaName = panorama.name;
-            StartCoroutine(fileManager.GetLocalThumbnail(panorama.name, tex =>
+            floppy.PanoramaName = panorama.config.name;
+            floppy.entry = panorama;
+            StartCoroutine(fileManager.GetLocalThumbnail(panorama.path, tex =>
             {
                 Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
                 floppy.SetThumbnail(sprite);

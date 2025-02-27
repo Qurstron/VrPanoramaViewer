@@ -1,0 +1,13 @@
+{
+  "viewerPath": "C:\\Users\\JulianKielblock\\AppData\\LocalLow\\QDev\\VrPanorama",
+  "recentProjects": [],
+  "maxFPS": 60,
+  "vsync": 1,
+  "uiScaling": 1.0,
+  "selectPulseTime": 1.0,
+  "defaultOutlineSize": 5.0,
+  "outlineColor": "#FF6600",
+  "outlinePulseColor": "#000000",
+  "runInBackground": false,
+  "maxNodesForceDirectedPerUpdate": 50
+}

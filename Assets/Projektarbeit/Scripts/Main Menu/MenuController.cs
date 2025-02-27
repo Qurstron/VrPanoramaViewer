@@ -1,22 +1,21 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.UI;
-using static JSONClasses;
+using JSONClasses;
 
 public class MenuController : MonoBehaviour
 {
-    public StateControler stateControler;
-    public FileManager fileManager;
-    public GameObject dataSourcePrefab;
-    public GameObject buttonPrefab;
-    public GameObject serverErrorPrefab;
-    public GameObject localRoot;
+    //public StateControler stateControler;
+    [SerializeField] private FileManager fileManager;
+    [SerializeField] private ProjectEditor projectEditor;
+    [SerializeField] private GameObject dataSourcePrefab;
+    [SerializeField] private GameObject buttonPrefab;
+    [SerializeField] private GameObject serverErrorPrefab;
+    [SerializeField] private GameObject localRoot;
 
     // TODO: load this from a config
     public Server[] servers = { new("Server", "http://localhost:7206/") }; // serverName, serverUrl
@@ -24,7 +23,7 @@ public class MenuController : MonoBehaviour
     private List<GameObject> buttons = new();
     private TaskScheduler scheduler;
 
-    void Start()
+    private void Start()
     {
         foreach (var server in servers)
         {
@@ -52,8 +51,11 @@ public class MenuController : MonoBehaviour
             reload();
         }
 
-        AddLocalButtons(fileManager.GetLocalPanoramas().ToArray());
         scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+        fileManager.GetLocalPanoramasInDirectory(Application.persistentDataPath).ContinueWith(task =>
+        {
+            AddLocalButtons(task.Result);
+        }, scheduler);
     }
 
     private void AddServerButtons(GameObject serverRoot, Server server, PanoramaMenuEntry[] panoramas)
@@ -62,35 +64,35 @@ public class MenuController : MonoBehaviour
         {
             GameObject button = Instantiate(buttonPrefab, serverRoot.transform);
             buttons.Add(button);
-            button.GetComponentInChildren<TextMeshProUGUI>().text = panorama.name;
+            button.GetComponentInChildren<TextMeshProUGUI>().text = panorama.config.name;
             button.GetComponentInChildren<Button>().onClick.AddListener(() => 
             {
-                Debug.Log(server.url + "Content/" + panorama.name);
-                StartCoroutine(fileManager.SavePanorama(server.url + "Content/files/" + panorama.name, panorama.name, () =>
+                Debug.Log(server.url + "Content/" + panorama.config.name);
+                StartCoroutine(fileManager.SavePanorama(server.url + "Content/files/" + panorama.config.name, panorama.config.name, () =>
                 {
                     AddLocalButton(panorama);
                 }));
             });
-            StartCoroutine(fileManager.LoadThumbnail(server.url + "Content/thumbnails/" + panorama.name, (tex) =>
+            StartCoroutine(fileManager.LoadThumbnail(server.url + "Content/thumbnails/" + panorama.config.name, (tex) =>
             {
                 button.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
             }));
         }
     }
-    private void AddLocalButtons(PanoramaMenuEntry[] panoramas)
+    private void AddLocalButtons(List<PanoramaMenuEntry> panoramas)
     {
         foreach (var panorama in panoramas)
         {
             GameObject button = Instantiate(buttonPrefab, localRoot.transform);
             
             buttons.Add(button);
-            button.GetComponentInChildren<TextMeshProUGUI>().text = panorama.name;
+            button.GetComponentInChildren<TextMeshProUGUI>().text = panorama.config.name;
             button.GetComponentInChildren<Button>().onClick.AddListener(() =>
             {
                 LoadingAnimation loadAnim = button.GetComponentInChildren<LoadingAnimation>();
                 loadAnim.StartAnimation();
-
-                fileManager.LoadLocalPanorama(panorama.name).ContinueWith(task =>
+                
+                fileManager.LoadLocalPanorama(panorama.config).ContinueWith(task =>
                 {
                     loadAnim.StopAnimation();
                     if (task.Result == null)
@@ -98,18 +100,18 @@ public class MenuController : MonoBehaviour
                         loadAnim.ErrorAnimation();
                         return;
                     }
-                    stateControler.ToggleMenu();
+                    projectEditor.SetConfig(task.Result);
                 }, scheduler);
             });
-            StartCoroutine(fileManager.GetLocalThumbnail(panorama.name, (tex) =>
+            StartCoroutine(fileManager.GetLocalThumbnail(panorama.config.path, (tex) =>
             {
-                button.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+                button.GetComponentInChildren<Image>().sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
             }));
         }
     }
     private void AddLocalButton(PanoramaMenuEntry panorama)
     {
-        AddLocalButtons(new PanoramaMenuEntry[] { panorama });
+        AddLocalButtons(new() { panorama });
     }
     private void DisplayConnectionProblem(GameObject serverRoot, Server server)
     {

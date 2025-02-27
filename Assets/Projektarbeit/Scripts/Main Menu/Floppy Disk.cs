@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit;
+using JSONClasses;
 
 [RequireComponent(typeof(XRGrabInteractable))]
 public class FloppyDisk : MonoBehaviour
@@ -11,7 +12,6 @@ public class FloppyDisk : MonoBehaviour
     public XRGrabInteractable grabInteractable;
 
     private string panoramaName;
-
     public string PanoramaName
     {
         get { return panoramaName; }
@@ -21,6 +21,8 @@ public class FloppyDisk : MonoBehaviour
             transform.Find("Canvas/Text").GetComponent<TMP_Text>().text = panoramaName;
         }
     }
+
+    public PanoramaMenuEntry entry;
 
     public void SetThumbnail(Sprite sprite)
     {

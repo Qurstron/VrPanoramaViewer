@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class StateControler : MonoBehaviour
 {
+    [SerializeField] private Material menuSkyboxMat;
+    [SerializeField] private Material viewSkyboxMat;
     private bool isMenuActive = true;
     private GameObject[] menuObjects = null;
     private GameObject[] viewerObjects = null;
@@ -21,7 +23,10 @@ public class StateControler : MonoBehaviour
 
     public void ToggleMenu()
     {
-        isMenuActive = !isMenuActive;
+        if (isMenuActive = !isMenuActive)
+            RenderSettings.skybox = menuSkyboxMat;
+        else
+            RenderSettings.skybox = viewSkyboxMat;
 
         foreach (var gameObject in viewerObjects)
         {

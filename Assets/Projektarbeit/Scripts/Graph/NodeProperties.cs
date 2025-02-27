@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
-using static JSONClasses;
+using JSONClasses;
 
 [RequireComponent(typeof(XRBaseInteractable))]
 public class NodeProperties : MonoBehaviour
@@ -38,6 +38,7 @@ public class NodeProperties : MonoBehaviour
     public Vector3 originalPos = Vector3.zero; // local space
     public XRBaseInteractable interactable;
     public Node node;
+    public List<NodeProperties> neighbors = new();
 
     private Color color = new();
     private string displayName = "";
@@ -137,7 +138,7 @@ public class NodeProperties : MonoBehaviour
             if (isExpanded)
             {
                 descriptionText.enabled = false;
-                outerTitleTypewriter.UntypeText();
+                outerTitleTypewriter.UntypeText(true);
                 return;
             }
 
@@ -155,7 +156,7 @@ public class NodeProperties : MonoBehaviour
                 outerTitleText.enabled = true;
                 descriptionText.enabled = true;
 
-                outerTitleTypewriter.TypeText();
+                outerTitleTypewriter.TypeText(true);
             };
             
         }

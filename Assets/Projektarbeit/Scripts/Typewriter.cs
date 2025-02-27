@@ -29,7 +29,7 @@ public class Typewriter : MonoBehaviour
         tmpText.text = startWithText ? text : "";
     }
 
-    public void TypeText()
+    public void TypeText(bool ignoreTypeDelay = false)
     {
         //if (isUntyping)
         //{
@@ -43,9 +43,9 @@ public class Typewriter : MonoBehaviour
         isUntyping = false;
 
         if (charIndex > 0) return;
-        Type();
+        Type(ignoreTypeDelay);
     }
-    public void UntypeText()
+    public void UntypeText(bool ignoreTypeDelay = false)
     {
         //if (!isUntyping)
         //{
@@ -59,14 +59,15 @@ public class Typewriter : MonoBehaviour
         isUntyping = true;
 
         if (charIndex < text.Length - 1) return;
-        Type();
+        Type(ignoreTypeDelay);
     }
-    private void Type()
+    private void Type(bool ignoreTypeDelay)
     {
         isStoped = false;
         if (IsFinished()) return;
 
-        typeCorutine = StartCoroutine(TypeCoroutine());
+        if (isActiveAndEnabled)
+            typeCorutine = StartCoroutine(TypeCoroutine(ignoreTypeDelay));
     }
 
     // reset cursor and text to the beginning (relative to typing direction)
@@ -113,7 +114,7 @@ public class Typewriter : MonoBehaviour
     public void Resume()
     {
         if (!isStoped) return;
-        Type();
+        Type(true);
     }
 
     public bool IsFinished()
@@ -121,9 +122,10 @@ public class Typewriter : MonoBehaviour
         return isUntyping ? charIndex == 0 : charIndex == text.Length - 1;
     }
 
-    private IEnumerator TypeCoroutine()
+    private IEnumerator TypeCoroutine(bool ignoreTypeDelay)
     {
-        yield return new WaitForSeconds(startDelay);
+        if (!ignoreTypeDelay)
+            yield return new WaitForSeconds(startDelay);
 
         int typeDirection = isUntyping ? -1 : 1;
         var wait = new WaitForSeconds(typeDelay);

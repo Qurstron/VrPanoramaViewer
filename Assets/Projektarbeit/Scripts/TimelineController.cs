@@ -9,7 +9,7 @@ using Unity.VisualScripting;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.UI;
-using static JSONClasses;
+using JSONClasses;
 
 [RequireComponent(typeof(RectTransform))]
 [RequireComponent(typeof(GameObject))]

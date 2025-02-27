@@ -7,6 +7,7 @@ using UnityEngine.Video;
 
 namespace Unity.VRTemplate
 {
+    using Slider = UnityEngine.UI.Slider;
     /// <summary>
     /// Connects a UI slider control to a video player, allowing users to scrub to a particular time in th video.
     /// </summary>
