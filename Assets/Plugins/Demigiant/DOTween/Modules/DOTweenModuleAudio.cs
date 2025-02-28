@@ -2,6 +2,7 @@
 // Created: 2018/07/13
 
 #if true // MODULE_MARKER
+using System;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine.Audio; // Required for AudioMixer
 #pragma warning disable 1591
 namespace DG.Tweening
 {
-    public static class DOTweenModuleAudio
+	public static class DOTweenModuleAudio
     {
         #region Shortcuts
 

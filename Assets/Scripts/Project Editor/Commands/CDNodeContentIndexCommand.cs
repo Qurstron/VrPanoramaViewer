@@ -1,3 +1,7 @@
+using JSONClasses;
+using System;
+using UnityEngine;
+
 public class CDNodeContentIndexCommand : CDCommand
 {
     private int index;

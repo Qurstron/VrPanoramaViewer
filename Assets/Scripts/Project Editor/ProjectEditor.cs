@@ -1,14 +1,18 @@
-using JSONClasses;
-using SFB;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Drawing;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using JSONClasses;
 using static UnityEngine.InputSystem.InputAction;
 using Application = UnityEngine.Application;
+using System.Diagnostics;
 using Debug = UnityEngine.Debug;
+using UnityEngine.UI;
+using SFB;
+using System.IO;
 
 //[RequireComponent(typeof(View))]
 public class ProjectEditor : Configable

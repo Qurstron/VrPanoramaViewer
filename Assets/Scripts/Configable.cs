@@ -1,5 +1,7 @@
-using JSONClasses;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using JSONClasses;
 
 public abstract class Configable : MonoBehaviour
 {

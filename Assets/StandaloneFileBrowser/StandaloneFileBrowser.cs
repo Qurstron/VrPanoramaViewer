@@ -1,7 +1,6 @@
 using System;
 
-namespace SFB
-{
+namespace SFB {
     public struct ExtensionFilter {
         public string Name;
         public string[] Extensions;

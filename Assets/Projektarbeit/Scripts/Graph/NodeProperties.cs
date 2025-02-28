@@ -1,12 +1,14 @@
 using DG.Tweening;
-using JSONClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
+using JSONClasses;
 
 [RequireComponent(typeof(XRBaseInteractable))]
 public class NodeProperties : MonoBehaviour

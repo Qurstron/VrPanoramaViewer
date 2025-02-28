@@ -1,3 +1,5 @@
+using UnityEngine;
+
 /// <summary>
 /// A abstract create and delete command.
 /// Usually these actions are mostly inverses of each other and can

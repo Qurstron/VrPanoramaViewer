@@ -1,9 +1,14 @@
-using JSONClasses;
-using System.Globalization;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using JSONClasses;
+using static System.Net.Mime.MediaTypeNames;
 using Image = UnityEngine.UI.Image;
+using System.Globalization;
 
 public class MenuEntry : MonoBehaviour
 {
