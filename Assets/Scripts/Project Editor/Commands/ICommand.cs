@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public interface ICommand
 {
     /// <returns>true if command has been succesfully executed</returns>

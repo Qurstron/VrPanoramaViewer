@@ -1,3 +1,4 @@
+using JSONClasses;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -5,7 +6,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using JSONClasses;
 
 public class MenuController : MonoBehaviour
 {

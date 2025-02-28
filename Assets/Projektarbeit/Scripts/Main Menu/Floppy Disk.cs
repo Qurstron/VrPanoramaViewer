@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
+using JSONClasses;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit;
-using JSONClasses;
 
 [RequireComponent(typeof(XRGrabInteractable))]
 public class FloppyDisk : MonoBehaviour

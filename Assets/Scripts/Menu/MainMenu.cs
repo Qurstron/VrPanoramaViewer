@@ -1,19 +1,15 @@
 using DG.Tweening;
+using JSONClasses;
 using SFB;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using JSONClasses;
 using Debug = UnityEngine.Debug;
 
 public class MainMenu : MonoBehaviour

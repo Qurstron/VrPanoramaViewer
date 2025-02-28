@@ -1,10 +1,8 @@
-using System.IO;
-using System.Text;
-using System.Runtime.InteropServices;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using SFB;
+using System.IO;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Button))]
 public class CanvasSampleSaveFileImage : MonoBehaviour, IPointerDownHandler {

@@ -1,17 +1,9 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
-using UnityEngine.UIElements;
-using System;
 using Image = UnityEngine.UI.Image;
-using DG.Tweening;
-using UnityEngine.Animations;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 [Serializable]
 public class Category : UnityEngine.UI.Button

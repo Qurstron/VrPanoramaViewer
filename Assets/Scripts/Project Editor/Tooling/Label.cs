@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using JSONClasses;
+using UnityEngine;
 
 public class LabelTool : Tool, IDownableAngle
 {

@@ -1,12 +1,9 @@
 using DG.Tweening;
-using System;
+using JSONClasses;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
-using JSONClasses;
 
 [RequireComponent(typeof(Collider))]
 public class FloppyDrive : MonoBehaviour

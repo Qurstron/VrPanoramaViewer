@@ -1,5 +1,3 @@
-using UnityEngine;
-
 /// <summary>
 /// Interface for fields that can be edited in realtime.
 /// Typically useful for float fields where the user can drag something.
